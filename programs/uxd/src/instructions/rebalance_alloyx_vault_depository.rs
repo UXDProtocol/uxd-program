@@ -194,48 +194,6 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
         alloyx_vault_depository_underflow_value,
     );
 
-    msg!(
-        "[rebalance_identity_depository:identity_depository_target_redeemable_amount:{}]",
-        identity_depository_target_redeemable_amount
-    );
-    msg!(
-        "[rebalance_identity_depository:alloyx_vault_depository_target_redeemable_amount:{}]",
-        alloyx_vault_depository_target_redeemable_amount
-    );
-    msg!(
-        "[rebalance_identity_depository:identity_depository_redeemable_amount_under_management:{}]",
-        identity_depository_redeemable_amount_under_management
-    );
-    msg!(
-        "[rebalance_identity_depository:alloyx_vault_depository_redeemable_amount_under_management:{}]",
-        alloyx_vault_depository_redeemable_amount_under_management
-    );
-    msg!(
-        "[rebalance_identity_depository:identity_depository_underflow_value:{}]",
-        identity_depository_underflow_value
-    );
-    msg!(
-        "[rebalance_alloyx_vault_depository:alloyx_vault_depository_underflow_value:{}]",
-        alloyx_vault_depository_underflow_value
-    );
-    msg!(
-        "[rebalance_identity_depository:identity_depository_overflow_value:{}]",
-        identity_depository_overflow_value
-    );
-    msg!(
-        "[rebalance_alloyx_vault_depository:alloyx_vault_depository_overflow_value:{}]",
-        alloyx_vault_depository_overflow_value
-    );
-
-    msg!(
-        "[rebalance_alloyx_vault_depository:withdraw_redeemable_amount:{}]",
-        withdraw_redeemable_amount
-    );
-    msg!(
-        "[rebalance_alloyx_vault_depository:deposit_redeemable_amount:{}]",
-        deposit_redeemable_amount
-    );
-
     // ---------------------------------------------------------------------
     // -- Phase 2
     // -- If possible, starts with actually withdrawing all profits we can
