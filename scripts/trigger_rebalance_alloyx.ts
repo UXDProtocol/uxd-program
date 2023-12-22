@@ -1,11 +1,10 @@
 import {
   AlloyxVaultDepository,
-  CredixLpDepository,
   UXDClient,
   nativeToUi,
 } from '@uxd-protocol/uxd-client';
 import { Transaction, ComputeBudgetProgram } from '@solana/web3.js';
-import { BN, web3 } from '@project-serum/anchor';
+import { web3 } from '@project-serum/anchor';
 import {
   createCredixLpDepositoryMainnet,
   createIdentityDepositoryMainnet,
@@ -114,11 +113,6 @@ async function main() {
       alloyxVaultDepository.collateralDecimals
     )
   );
-  console.log(
-    'alloyxVaultInfo.alloyxMint',
-    alloyxVaultInfo.alloyxMint.toBase58()
-  );
-  console.log('alloyxVaultInfo.usdcMint', alloyxVaultInfo.usdcMint.toBase58());
   console.log();
 
   const alloyxVaultPass = await AlloyxVaultDepository.getAlloyxVaultPassAccount(
