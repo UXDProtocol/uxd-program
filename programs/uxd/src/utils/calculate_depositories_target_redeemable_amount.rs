@@ -4,7 +4,6 @@ use anchor_lang::require;
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
 use crate::utils::checked_add;
-use crate::utils::checked_as_u64;
 use crate::utils::checked_sub;
 use crate::BPS_POWER;
 use crate::ROUTER_DEPOSITORIES_COUNT;
