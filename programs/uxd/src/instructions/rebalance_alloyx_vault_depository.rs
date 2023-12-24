@@ -583,6 +583,7 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
             collateral_mint.as_ref(),
             &[self.alloyx_vault_depository.load()?.bump],
         ]];
+
         alloyx_cpi::cpi::withdraw(
             self.into_withdraw_from_alloyx_vault_to_alloyx_vault_depository_collateral_context()
                 .with_signer(alloyx_vault_depository_pda_signer),

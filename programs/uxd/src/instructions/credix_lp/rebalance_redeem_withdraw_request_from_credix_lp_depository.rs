@@ -350,17 +350,17 @@ pub(crate) fn handler(
         total_shares_value_before,
     )?;
 
-    if withdrawal_total_shares_amount == 0 {
-        msg!("[rebalance_redeem_withdraw_request_from_credix_lp_depository:no_withdrawable_liquidity]",);
-        return Ok(());
-    }
-
     let withdrawal_total_collateral_amount_after_precision_loss =
         compute_value_for_shares_amount_floor(
             withdrawal_total_shares_amount,
             total_shares_supply_before,
             total_shares_value_before,
         )?;
+
+    if withdrawal_total_collateral_amount_after_precision_loss == 0 {
+        msg!("[rebalance_redeem_withdraw_request_from_credix_lp_depository:no_withdrawable_liquidity]",);
+        return Ok(());
+    }
 
     // Precision loss should be taken from the profits, not the overflow
     // Otherwise this means that the precision loss would take out of the backing value
@@ -379,14 +379,12 @@ pub(crate) fn handler(
         "[rebalance_redeem_withdraw_request_from_credix_lp_depository:redeem_withdraw_request:{}]",
         withdrawal_total_collateral_amount
     );
-    if withdrawal_total_collateral_amount > 0 {
-        credix_client::cpi::redeem_withdraw_request(
-            ctx.accounts
-                .into_redeem_withdraw_request_from_credix_lp_context()
-                .with_signer(depository_pda_signer),
-            withdrawal_total_collateral_amount,
-        )?;
-    }
+    credix_client::cpi::redeem_withdraw_request(
+        ctx.accounts
+            .into_redeem_withdraw_request_from_credix_lp_context()
+            .with_signer(depository_pda_signer),
+        withdrawal_total_collateral_amount,
+    )?;
 
     msg!(
         "[rebalance_redeem_withdraw_request_from_credix_lp_depository:profits_beneficiary_collateral_transfer:{}]",
