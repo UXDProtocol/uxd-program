@@ -16,21 +16,21 @@ mod test_compute_amount_fraction_floor {
         assert_eq!(compute_amount_fraction_floor(100, 10, 100)?, 10);
         assert_eq!(compute_amount_fraction_floor(100, 100, 100)?, 100);
 
-        assert_eq!(compute_amount_fraction_floor(10, 0, 100)?, 10);
-        assert_eq!(compute_amount_fraction_floor(10, 10, 100)?, 9);
-        assert_eq!(compute_amount_fraction_floor(10, 100, 100)?, 0);
+        assert_eq!(compute_amount_fraction_floor(10, 0, 100)?, 0);
+        assert_eq!(compute_amount_fraction_floor(10, 10, 100)?, 1);
+        assert_eq!(compute_amount_fraction_floor(10, 100, 100)?, 10);
 
-        assert_eq!(compute_amount_fraction_floor(1000, 0, 100)?, 1000);
-        assert_eq!(compute_amount_fraction_floor(1000, 10, 100)?, 900);
-        assert_eq!(compute_amount_fraction_floor(1000, 100, 100)?, 0);
+        assert_eq!(compute_amount_fraction_floor(1000, 0, 100)?, 0);
+        assert_eq!(compute_amount_fraction_floor(1000, 10, 100)?, 100);
+        assert_eq!(compute_amount_fraction_floor(1000, 100, 100)?, 1000);
 
-        assert_eq!(compute_amount_fraction_floor(1000, 0, 10000)?, 1000);
-        assert_eq!(compute_amount_fraction_floor(1000, 10, 10000)?, 999);
-        assert_eq!(compute_amount_fraction_floor(1000, 100, 10000)?, 990);
+        assert_eq!(compute_amount_fraction_floor(1000, 0, 10000)?, 0);
+        assert_eq!(compute_amount_fraction_floor(1000, 10, 10000)?, 1);
+        assert_eq!(compute_amount_fraction_floor(1000, 100, 10000)?, 10);
 
         // Test proper precision loss behavior
-        assert_eq!(compute_amount_fraction_floor(1000, 1, 10000)?, 999);
-        assert_eq!(compute_amount_fraction_floor(1000, 9999, 10000)?, 0);
+        assert_eq!(compute_amount_fraction_floor(1000, 1, 10000)?, 0);
+        assert_eq!(compute_amount_fraction_floor(1000, 9999, 10000)?, 999);
 
         // Test large amounts against u64 overflow
         assert_eq!(
@@ -43,14 +43,11 @@ mod test_compute_amount_fraction_floor {
         );
         assert_eq!(
             compute_amount_fraction_floor(u64::MAX, u64::MAX, u64::MAX)?,
-            0
+            u64::MAX
         );
-        assert_eq!(
-            compute_amount_fraction_floor(u64::MAX, 42, u64::MAX)?,
-            u64::MAX - 42
-        );
-        assert_eq!(compute_amount_fraction_floor(42, u64::MAX, u64::MAX)?, 0);
-        assert_eq!(compute_amount_fraction_floor(u64::MAX, 42, 42)?, 0);
+        assert_eq!(compute_amount_fraction_floor(u64::MAX, 42, u64::MAX)?, 42);
+        assert_eq!(compute_amount_fraction_floor(42, u64::MAX, u64::MAX)?, 42);
+        assert_eq!(compute_amount_fraction_floor(u64::MAX, 42, 42)?, u64::MAX);
 
         Ok(())
     }
@@ -61,8 +58,6 @@ mod test_compute_amount_fraction_floor {
         assert!(compute_amount_fraction_floor(0, 10, 0).is_err());
         assert!(compute_amount_fraction_floor(10, 0, 0).is_err());
         assert!(compute_amount_fraction_floor(10, 10, 0).is_err());
-
-        assert!(compute_amount_fraction_floor(0, 101, 100).is_err());
         Ok(())
     }
 
@@ -79,7 +74,7 @@ mod test_compute_amount_fraction_floor {
                 prop_assert!(result.is_err());
                 return Ok(());
             }
-            if numerator > denominator {
+            if u128::from(amount) * u128::from(numerator) / u128::from(denominator) > u128::from(u64::MAX) {
                 prop_assert!(result.is_err());
                 return Ok(());
             }
