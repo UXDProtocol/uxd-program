@@ -379,34 +379,40 @@ pub(crate) fn handler(
         "[rebalance_redeem_withdraw_request_from_credix_lp_depository:redeem_withdraw_request:{}]",
         withdrawal_total_collateral_amount
     );
-    credix_client::cpi::redeem_withdraw_request(
-        ctx.accounts
-            .into_redeem_withdraw_request_from_credix_lp_context()
-            .with_signer(depository_pda_signer),
-        withdrawal_total_collateral_amount,
-    )?;
+    if withdrawal_total_collateral_amount > 0 {
+        credix_client::cpi::redeem_withdraw_request(
+            ctx.accounts
+                .into_redeem_withdraw_request_from_credix_lp_context()
+                .with_signer(depository_pda_signer),
+            withdrawal_total_collateral_amount,
+        )?;
+    }
 
     msg!(
         "[rebalance_redeem_withdraw_request_from_credix_lp_depository:profits_beneficiary_collateral_transfer:{}]",
         withdrawal_profits_collateral_amount_after_precision_loss
     );
-    token::transfer(
-        ctx.accounts
-            .into_transfer_depository_collateral_to_profits_beneficiary_collateral_context()
-            .with_signer(depository_pda_signer),
-        withdrawal_profits_collateral_amount_after_precision_loss,
-    )?;
+    if withdrawal_profits_collateral_amount_after_precision_loss > 0 {
+        token::transfer(
+            ctx.accounts
+                .into_transfer_depository_collateral_to_profits_beneficiary_collateral_context()
+                .with_signer(depository_pda_signer),
+            withdrawal_profits_collateral_amount_after_precision_loss,
+        )?;
+    }
 
     msg!(
         "[rebalance_redeem_withdraw_request_from_credix_lp_depository:identity_depository_collateral_transfer:{}]",
         withdrawal_overflow_value_after_precision_loss
     );
-    token::transfer(
-        ctx.accounts
-            .into_transfer_depository_collateral_to_identity_depository_collateral_context()
-            .with_signer(depository_pda_signer),
-        withdrawal_overflow_value_after_precision_loss,
-    )?;
+    if withdrawal_overflow_value_after_precision_loss > 0 {
+        token::transfer(
+            ctx.accounts
+                .into_transfer_depository_collateral_to_identity_depository_collateral_context()
+                .with_signer(depository_pda_signer),
+            withdrawal_overflow_value_after_precision_loss,
+        )?;
+    }
 
     // Refresh account states after withdrawal
     {
