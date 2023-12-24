@@ -251,9 +251,7 @@ impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
                 .ok()
                 .ok_or(UxdError::MathOverflow)?;
 
-        Ok(owned_lp_tokens_value
-            .checked_sub(redeemable_amount_under_management)
-            .ok_or(UxdError::MathOverflow)?)
+        Ok(owned_lp_tokens_value.saturating_sub(redeemable_amount_under_management))
     }
 }
 

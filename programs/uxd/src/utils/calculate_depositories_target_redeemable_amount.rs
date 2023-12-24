@@ -76,16 +76,10 @@ pub fn calculate_depositories_target_redeemable_amount(
     )
     .map(
         |(depository_raw_target_redeemable_amount, depository_hard_cap_amount)| {
-            if depository_raw_target_redeemable_amount <= depository_hard_cap_amount {
-                return Ok(0);
-            }
-            checked_sub(
-                *depository_raw_target_redeemable_amount,
-                *depository_hard_cap_amount,
-            )
+            depository_raw_target_redeemable_amount.saturating_sub(*depository_hard_cap_amount)
         },
     )
-    .collect::<Result<Vec<u64>>>()?;
+    .collect::<Vec<u64>>();
 
     // Compute the amount of space available under the cap in each depository
     let depositories_available_amount = std::iter::zip(
@@ -94,16 +88,10 @@ pub fn calculate_depositories_target_redeemable_amount(
     )
     .map(
         |(depository_raw_target_redeemable_amount, depository_hard_cap_amount)| {
-            if depository_raw_target_redeemable_amount >= depository_hard_cap_amount {
-                return Ok(0);
-            }
-            checked_sub(
-                *depository_hard_cap_amount,
-                *depository_raw_target_redeemable_amount,
-            )
+            depository_hard_cap_amount.saturating_sub(*depository_raw_target_redeemable_amount)
         },
     )
-    .collect::<Result<Vec<u64>>>()?;
+    .collect::<Vec<u64>>();
 
     // ---------------------------------------------------------------------
     // -- Phase 3

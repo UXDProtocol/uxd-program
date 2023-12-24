@@ -196,9 +196,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
             assets_value
         );
         // Compute the amount of profits that we can safely withdraw
-        assets_value
-            .checked_sub(liabilities_value)
-            .ok_or(UxdError::MathOverflow)?
+        assets_value.saturating_sub(liabilities_value)
     };
     msg!(
         "[collect_profits_of_credix_lp_depository:profits_value:{}]",
