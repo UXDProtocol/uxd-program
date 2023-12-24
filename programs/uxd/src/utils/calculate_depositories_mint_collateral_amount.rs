@@ -124,6 +124,7 @@ pub fn calculate_depositories_mint_collateral_amount(
                     *depository_under_target_redeemable_amount,
                 )?;
                 compute_amount_less_fraction_floor(
+                    // TODO
                     requested_primary_collateral_amount,
                     other_depositories_under_target_redeemable_amount,
                     total_under_target_redeemable_amount,
