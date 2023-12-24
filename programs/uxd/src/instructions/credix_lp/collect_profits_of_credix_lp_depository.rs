@@ -10,6 +10,7 @@ use crate::error::UxdError;
 use crate::events::CollectProfitsOfCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
+use crate::utils::checked_as_u64;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value_floor;
@@ -178,19 +179,20 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
     )?;
 
     // How much collateral can we withdraw as profits
-    let profits_value: u128 = {
+    let profits_value = {
         // Compute the set of liabilities owed to the users
-        let liabilities_value: u128 = ctx
-            .accounts
-            .depository
-            .load()?
-            .redeemable_amount_under_management;
+        let liabilities_value = checked_as_u64(
+            ctx.accounts
+                .depository
+                .load()?
+                .redeemable_amount_under_management,
+        )?;
         msg!(
             "[collect_profits_of_credix_lp_depository:liabilities_value:{}]",
             liabilities_value
         );
         // Compute the set of assets owned in the LP
-        let assets_value: u128 = owned_shares_value_before.into();
+        let assets_value = owned_shares_value_before;
         msg!(
             "[collect_profits_of_credix_lp_depository:assets_value:{}]",
             assets_value
@@ -198,15 +200,9 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
         // Compute the amount of profits that we can safely withdraw
         assets_value.saturating_sub(liabilities_value)
     };
-    msg!(
-        "[collect_profits_of_credix_lp_depository:profits_value:{}]",
-        profits_value
-    );
 
     // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
-    let collateral_amount_before_precision_loss: u64 = u64::try_from(profits_value)
-        .ok()
-        .ok_or(UxdError::MathOverflow)?;
+    let collateral_amount_before_precision_loss: u64 = profits_value;
     msg!(
         "[collect_profits_of_credix_lp_depository:collateral_amount_before_precision_loss:{}]",
         collateral_amount_before_precision_loss
