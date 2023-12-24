@@ -26,8 +26,6 @@ pub fn calculate_depositories_target_redeemable_amount(
         UxdError::InvalidDepositoriesVector
     );
 
-    let redeemable_circulating_supply = checked_as_u64(redeemable_circulating_supply)?;
-
     // Double check that the weights adds up to 100%
     let depositories_weights_bps = depositories_info
         .iter()
@@ -66,8 +64,8 @@ pub fn calculate_depositories_target_redeemable_amount(
     // Read the minting caps of each depository
     let depositories_hard_cap_amount = depositories_info
         .iter()
-        .map(|depository| checked_as_u64(depository.redeemable_amount_under_management_cap))
-        .collect::<Result<Vec<u64>>>()?;
+        .map(|depository| depository.redeemable_amount_under_management_cap)
+        .collect::<Vec<u64>>();
 
     // Compute the depository_overflow amount of raw target that doesn't fit within the cap of each depository
     let depositories_overflow_amount = std::iter::zip(

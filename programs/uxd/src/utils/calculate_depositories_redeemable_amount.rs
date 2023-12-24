@@ -167,7 +167,7 @@ pub fn calculate_depositories_redeemable_amount(
             continue;
         }
         let depository_remaining_after_redeem = checked_sub(
-            checked_as_u64(depository.redeemable_amount_under_management)?,
+            depository.redeemable_amount_under_management,
             depositories_redeemable_amount[i],
         )?;
         let depository_rounding_correction =
