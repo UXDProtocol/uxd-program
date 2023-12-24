@@ -1,6 +1,6 @@
 mod checked_add_u128_and_i128;
 mod compute_amount_fraction_ceil;
-mod compute_amount_less_fraction_floor;
+mod compute_amount_fraction_floor;
 mod compute_decrease;
 mod compute_increase;
 mod compute_shares_amount_for_value_floor;
