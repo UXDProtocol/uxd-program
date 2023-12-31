@@ -69,7 +69,7 @@ pub struct RegisterAlloyxVaultDepository<'info> {
         associated_token::authority = depository,
         payer = payer,
     )]
-    pub depository_shares: Box<Account<'info, TokenAccount>>,
+    pub depository_shares: Box<Account<'info, TokenAccount>>, // TODO
 
     /// #8
     pub alloyx_vault_info: Box<Account<'info, alloyx_cpi::VaultInfo>>,
