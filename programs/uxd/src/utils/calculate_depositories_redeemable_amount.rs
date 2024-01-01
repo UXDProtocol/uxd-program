@@ -35,18 +35,13 @@ pub fn calculate_depositories_redeemable_amount(
         .iter()
         .map(|depository| {
             if !depository.directly_redeemable {
-                return Ok(0);
+                return 0;
             }
-            if depository.redeemable_amount_under_management <= depository.target_redeemable_amount
-            {
-                return Ok(0);
-            }
-            checked_sub(
-                depository.redeemable_amount_under_management,
-                depository.target_redeemable_amount,
-            )
+            depository
+                .redeemable_amount_under_management
+                .saturating_sub(depository.target_redeemable_amount)
         })
-        .collect::<Result<Vec<u64>>>()?;
+        .collect::<Vec<u64>>();
 
     let total_over_target_redeemable_amount =
         calculate_depositories_sum_value(&depositories_over_target_redeemable_amount)?;
@@ -62,14 +57,14 @@ pub fn calculate_depositories_redeemable_amount(
         .iter()
         .map(|depository| {
             if !depository.directly_redeemable {
-                return Ok(0);
+                return 0;
             }
-            Ok(std::cmp::min(
+            std::cmp::min(
                 depository.redeemable_amount_under_management,
                 depository.target_redeemable_amount,
-            ))
+            )
         })
-        .collect::<Result<Vec<u64>>>()?;
+        .collect::<Vec<u64>>();
 
     let total_under_target_redeemable_amount =
         calculate_depositories_sum_value(&depositories_under_target_redeemable_amount)?;
