@@ -166,14 +166,16 @@ pub(crate) fn handler(
         )?;
 
     // 3 - Redeem collateral from mercurial vault for lp tokens
-    mercurial_vault::cpi::withdraw(
-        ctx.accounts
-            .into_withdraw_collateral_from_mercurial_vault_context()
-            .with_signer(depository_signer_seed),
-        lp_token_amount_to_match_collateral_amount_less_fees,
-        // Do not check slippage here
-        0,
-    )?;
+    if lp_token_amount_to_match_collateral_amount_less_fees > 0 {
+        mercurial_vault::cpi::withdraw(
+            ctx.accounts
+                .into_withdraw_collateral_from_mercurial_vault_context()
+                .with_signer(depository_signer_seed),
+            lp_token_amount_to_match_collateral_amount_less_fees,
+            // Do not check slippage here
+            0,
+        )?;
+    }
 
     // 4 - Reload accounts impacted by the withdraw (We need updated numbers for further calculation)
     ctx.accounts.depository_lp_token_vault.reload()?;
