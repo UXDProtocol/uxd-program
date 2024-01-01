@@ -292,9 +292,9 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
                 alloyx_vault_depository.redeemable_amount_under_management,
                 deposited_underflow_collateral,
             )?;
-            // If we deposited, we can stop here
-            return Ok(());
         }
+        // If we deposited, we can stop here (no need to withdraw)
+        return Ok(());
     }
 
     // ---------------------------------------------------------------------
