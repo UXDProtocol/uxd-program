@@ -7,7 +7,7 @@ use crate::utils::checked_add;
 use crate::utils::checked_sub;
 use crate::ROUTER_DEPOSITORIES_COUNT;
 
-use super::compute_amount_less_fraction_floor;
+use super::compute_amount_fraction_floor;
 
 pub struct DepositoryInfoForRedeemableAmount {
     pub directly_redeemable: bool,
@@ -104,13 +104,9 @@ pub fn calculate_depositories_redeemable_amount(
                 total_over_target_redeemable_amount,
             );
             let depository_primary_redeemable_amount = if total_over_target_redeemable_amount > 0 {
-                let other_depositories_over_target_redeemable_amount = checked_sub(
-                    total_over_target_redeemable_amount,
-                    *depository_over_target_redeemable_amount,
-                )?;
-                compute_amount_less_fraction_floor(
+                compute_amount_fraction_floor(
                     requested_primary_redeemable_amount,
-                    other_depositories_over_target_redeemable_amount,
+                    *depository_over_target_redeemable_amount,
                     total_over_target_redeemable_amount,
                 )?
             } else {
@@ -122,13 +118,9 @@ pub fn calculate_depositories_redeemable_amount(
                 requested_primary_redeemable_amount,
             )?;
             let depository_backup_redeemable_amount = if total_under_target_redeemable_amount > 0 {
-                let other_depositories_under_target_redeemable_amount = checked_sub(
-                    total_under_target_redeemable_amount,
-                    *depository_under_target_redeemable_amount,
-                )?;
-                compute_amount_less_fraction_floor(
+                compute_amount_fraction_floor(
                     requested_backup_redeemable_amount,
-                    other_depositories_under_target_redeemable_amount,
+                    *depository_under_target_redeemable_amount,
                     total_under_target_redeemable_amount,
                 )?
             } else {
