@@ -177,7 +177,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let new_epoch_outflow_amount = {
         // How long ago was the last outflow
         let last_outflow_elapsed_slots = std::cmp::min(
-            checked_as_u64(checked_sub(current_slot, controller.last_outflow_slot)?)?,
+            checked_sub(current_slot, controller.last_outflow_slot)?,
             controller.slots_per_epoch,
         );
         // How much was unlocked by waiting since last redeem

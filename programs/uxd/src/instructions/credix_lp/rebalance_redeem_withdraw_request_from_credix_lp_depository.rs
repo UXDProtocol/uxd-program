@@ -264,10 +264,8 @@ pub(crate) fn handler(
             .redeemable_amount_under_management,
     )?;
 
-    let profits_collateral_amount = checked_sub(
-        owned_shares_value_before,
-        redeemable_amount_under_management,
-    )?;
+    let profits_collateral_amount =
+        owned_shares_value_before.saturating_sub(redeemable_amount_under_management);
     msg!(
         "[rebalance_redeem_withdraw_request_from_credix_lp_depository:profits_collateral_amount:{}]",
         profits_collateral_amount
@@ -283,14 +281,8 @@ pub(crate) fn handler(
                 &ctx.accounts.alloyx_vault_depository,
             )?
             .credix_lp_depository_target_redeemable_amount;
-        if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
-            0
-        } else {
-            checked_sub(
-                redeemable_amount_under_management,
-                redeemable_amount_under_management_target_amount,
-            )?
-        }
+        redeemable_amount_under_management
+            .saturating_sub(redeemable_amount_under_management_target_amount)
     };
     msg!(
         "[rebalance_redeem_withdraw_request_from_credix_lp_depository:overflow_value:{}]",

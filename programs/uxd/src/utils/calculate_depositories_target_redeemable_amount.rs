@@ -4,7 +4,6 @@ use anchor_lang::require;
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
 use crate::utils::checked_add;
-use crate::utils::checked_as_u64;
 use crate::utils::checked_sub;
 use crate::BPS_POWER;
 use crate::ROUTER_DEPOSITORIES_COUNT;
@@ -25,8 +24,6 @@ pub fn calculate_depositories_target_redeemable_amount(
         depositories_info.len() == ROUTER_DEPOSITORIES_COUNT,
         UxdError::InvalidDepositoriesVector
     );
-
-    let redeemable_circulating_supply = checked_as_u64(redeemable_circulating_supply)?;
 
     // Double check that the weights adds up to 100%
     let depositories_weights_bps = depositories_info
@@ -66,8 +63,8 @@ pub fn calculate_depositories_target_redeemable_amount(
     // Read the minting caps of each depository
     let depositories_hard_cap_amount = depositories_info
         .iter()
-        .map(|depository| checked_as_u64(depository.redeemable_amount_under_management_cap))
-        .collect::<Result<Vec<u64>>>()?;
+        .map(|depository| depository.redeemable_amount_under_management_cap)
+        .collect::<Vec<u64>>();
 
     // Compute the depository_overflow amount of raw target that doesn't fit within the cap of each depository
     let depositories_overflow_amount = std::iter::zip(
@@ -76,16 +73,10 @@ pub fn calculate_depositories_target_redeemable_amount(
     )
     .map(
         |(depository_raw_target_redeemable_amount, depository_hard_cap_amount)| {
-            if depository_raw_target_redeemable_amount <= depository_hard_cap_amount {
-                return Ok(0);
-            }
-            checked_sub(
-                *depository_raw_target_redeemable_amount,
-                *depository_hard_cap_amount,
-            )
+            depository_raw_target_redeemable_amount.saturating_sub(*depository_hard_cap_amount)
         },
     )
-    .collect::<Result<Vec<u64>>>()?;
+    .collect::<Vec<u64>>();
 
     // Compute the amount of space available under the cap in each depository
     let depositories_available_amount = std::iter::zip(
@@ -94,16 +85,10 @@ pub fn calculate_depositories_target_redeemable_amount(
     )
     .map(
         |(depository_raw_target_redeemable_amount, depository_hard_cap_amount)| {
-            if depository_raw_target_redeemable_amount >= depository_hard_cap_amount {
-                return Ok(0);
-            }
-            checked_sub(
-                *depository_hard_cap_amount,
-                *depository_raw_target_redeemable_amount,
-            )
+            depository_hard_cap_amount.saturating_sub(*depository_raw_target_redeemable_amount)
         },
     )
-    .collect::<Result<Vec<u64>>>()?;
+    .collect::<Vec<u64>>();
 
     // ---------------------------------------------------------------------
     // -- Phase 3
