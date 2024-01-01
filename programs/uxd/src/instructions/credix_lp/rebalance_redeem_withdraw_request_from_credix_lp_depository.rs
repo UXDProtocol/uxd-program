@@ -264,10 +264,8 @@ pub(crate) fn handler(
             .redeemable_amount_under_management,
     )?;
 
-    let profits_collateral_amount = checked_sub(
-        owned_shares_value_before,
-        redeemable_amount_under_management,
-    )?;
+    let profits_collateral_amount =
+        owned_shares_value_before.saturating_sub(redeemable_amount_under_management);
     msg!(
         "[rebalance_redeem_withdraw_request_from_credix_lp_depository:profits_collateral_amount:{}]",
         profits_collateral_amount
@@ -283,14 +281,8 @@ pub(crate) fn handler(
                 &ctx.accounts.alloyx_vault_depository,
             )?
             .credix_lp_depository_target_redeemable_amount;
-        if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
-            0
-        } else {
-            checked_sub(
-                redeemable_amount_under_management,
-                redeemable_amount_under_management_target_amount,
-            )?
-        }
+        redeemable_amount_under_management
+            .saturating_sub(redeemable_amount_under_management_target_amount)
     };
     msg!(
         "[rebalance_redeem_withdraw_request_from_credix_lp_depository:overflow_value:{}]",
@@ -350,17 +342,17 @@ pub(crate) fn handler(
         total_shares_value_before,
     )?;
 
-    if withdrawal_total_shares_amount == 0 {
-        msg!("[rebalance_redeem_withdraw_request_from_credix_lp_depository:no_withdrawable_liquidity]",);
-        return Ok(());
-    }
-
     let withdrawal_total_collateral_amount_after_precision_loss =
         compute_value_for_shares_amount_floor(
             withdrawal_total_shares_amount,
             total_shares_supply_before,
             total_shares_value_before,
         )?;
+
+    if withdrawal_total_collateral_amount_after_precision_loss == 0 {
+        msg!("[rebalance_redeem_withdraw_request_from_credix_lp_depository:no_withdrawable_liquidity]",);
+        return Ok(());
+    }
 
     // Precision loss should be taken from the profits, not the overflow
     // Otherwise this means that the precision loss would take out of the backing value
@@ -390,23 +382,27 @@ pub(crate) fn handler(
         "[rebalance_redeem_withdraw_request_from_credix_lp_depository:profits_beneficiary_collateral_transfer:{}]",
         withdrawal_profits_collateral_amount_after_precision_loss
     );
-    token::transfer(
-        ctx.accounts
-            .into_transfer_depository_collateral_to_profits_beneficiary_collateral_context()
-            .with_signer(depository_pda_signer),
-        withdrawal_profits_collateral_amount_after_precision_loss,
-    )?;
+    if withdrawal_profits_collateral_amount_after_precision_loss > 0 {
+        token::transfer(
+            ctx.accounts
+                .into_transfer_depository_collateral_to_profits_beneficiary_collateral_context()
+                .with_signer(depository_pda_signer),
+            withdrawal_profits_collateral_amount_after_precision_loss,
+        )?;
+    }
 
     msg!(
         "[rebalance_redeem_withdraw_request_from_credix_lp_depository:identity_depository_collateral_transfer:{}]",
         withdrawal_overflow_value_after_precision_loss
     );
-    token::transfer(
-        ctx.accounts
-            .into_transfer_depository_collateral_to_identity_depository_collateral_context()
-            .with_signer(depository_pda_signer),
-        withdrawal_overflow_value_after_precision_loss,
-    )?;
+    if withdrawal_overflow_value_after_precision_loss > 0 {
+        token::transfer(
+            ctx.accounts
+                .into_transfer_depository_collateral_to_identity_depository_collateral_context()
+                .with_signer(depository_pda_signer),
+            withdrawal_overflow_value_after_precision_loss,
+        )?;
+    }
 
     // Refresh account states after withdrawal
     {
