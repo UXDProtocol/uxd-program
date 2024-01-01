@@ -12,7 +12,6 @@ use crate::state::mercurial_vault_depository::MercurialVaultDepository;
 use crate::utils::calculate_router_depositories_target_redeemable_amount;
 use crate::utils::checked_add;
 use crate::utils::checked_as_u64;
-use crate::utils::checked_sub;
 use crate::utils::compute_value_for_shares_amount_floor;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -183,7 +182,7 @@ pub(crate) fn handler(
             total_shares_supply,
             total_shares_value,
         )?;
-        checked_sub(owned_shares_value, redeemable_amount_under_management)?
+        owned_shares_value.saturating_sub(redeemable_amount_under_management)
     };
 
     let overflow_value = {
@@ -196,14 +195,8 @@ pub(crate) fn handler(
                 &ctx.accounts.alloyx_vault_depository,
             )?
             .credix_lp_depository_target_redeemable_amount;
-        if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
-            0
-        } else {
-            checked_sub(
-                redeemable_amount_under_management,
-                redeemable_amount_under_management_target_amount,
-            )?
-        }
+        redeemable_amount_under_management
+            .saturating_sub(redeemable_amount_under_management_target_amount)
     };
 
     // ---------------------------------------------------------------------
