@@ -1,6 +1,6 @@
 pub mod checked_add_u128_and_i128;
 pub mod compute_amount_fraction_ceil;
-pub mod compute_amount_less_fraction_floor;
+pub mod compute_amount_fraction_floor;
 pub mod compute_decrease;
 pub mod compute_increase;
 pub mod compute_shares_amount_for_value_floor;
@@ -10,7 +10,7 @@ pub mod is_within_range_inclusive;
 
 pub use checked_add_u128_and_i128::*;
 pub use compute_amount_fraction_ceil::*;
-pub use compute_amount_less_fraction_floor::*;
+pub use compute_amount_fraction_floor::*;
 pub use compute_decrease::*;
 pub use compute_increase::*;
 pub use compute_shares_amount_for_value_floor::*;

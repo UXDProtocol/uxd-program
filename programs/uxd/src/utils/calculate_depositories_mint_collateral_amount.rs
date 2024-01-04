@@ -7,7 +7,7 @@ use crate::utils::checked_add;
 use crate::utils::checked_sub;
 use crate::ROUTER_DEPOSITORIES_COUNT;
 
-use super::compute_amount_less_fraction_floor;
+use super::compute_amount_fraction_floor;
 
 pub struct DepositoryInfoForMintCollateralAmount {
     pub directly_mintable: bool,
@@ -35,18 +35,13 @@ pub fn calculate_depositories_mint_collateral_amount(
         .iter()
         .map(|depository| {
             if !depository.directly_mintable {
-                return Ok(0);
+                return 0;
             }
-            if depository.target_redeemable_amount <= depository.redeemable_amount_under_management
-            {
-                return Ok(0);
-            }
-            checked_sub(
-                depository.target_redeemable_amount,
-                depository.redeemable_amount_under_management,
-            )
+            depository
+                .target_redeemable_amount
+                .saturating_sub(depository.redeemable_amount_under_management)
         })
-        .collect::<Result<Vec<u64>>>()?;
+        .collect::<Vec<u64>>();
 
     let total_under_target_redeemable_amount =
         calculate_depositories_sum_value(&depositories_under_target_redeemable_amount)?;
@@ -63,23 +58,17 @@ pub fn calculate_depositories_mint_collateral_amount(
         .iter()
         .map(|depository| {
             if !depository.directly_mintable {
-                return Ok(0);
+                return 0;
             }
             let depository_after_target_redeemable_amount = std::cmp::max(
                 depository.redeemable_amount_under_management,
                 depository.target_redeemable_amount,
             );
-            if depository.redeemable_amount_under_management_cap
-                <= depository_after_target_redeemable_amount
-            {
-                return Ok(0);
-            }
-            checked_sub(
-                depository.redeemable_amount_under_management_cap,
-                depository_after_target_redeemable_amount,
-            )
+            depository
+                .redeemable_amount_under_management_cap
+                .saturating_sub(depository_after_target_redeemable_amount)
         })
-        .collect::<Result<Vec<u64>>>()?;
+        .collect::<Vec<u64>>();
 
     let total_under_cap_redeemable_amount =
         calculate_depositories_sum_value(&depositories_under_cap_redeemable_amount)?;
@@ -119,13 +108,9 @@ pub fn calculate_depositories_mint_collateral_amount(
                 total_under_target_redeemable_amount,
             );
             let depository_primary_collateral_amount = if total_under_target_redeemable_amount > 0 {
-                let other_depositories_under_target_redeemable_amount = checked_sub(
-                    total_under_target_redeemable_amount,
-                    *depository_under_target_redeemable_amount,
-                )?;
-                compute_amount_less_fraction_floor(
+                compute_amount_fraction_floor(
                     requested_primary_collateral_amount,
-                    other_depositories_under_target_redeemable_amount,
+                    *depository_under_target_redeemable_amount,
                     total_under_target_redeemable_amount,
                 )?
             } else {
@@ -137,13 +122,9 @@ pub fn calculate_depositories_mint_collateral_amount(
                 requested_primary_collateral_amount,
             )?;
             let depository_backup_collateral_amount = if total_under_cap_redeemable_amount > 0 {
-                let other_depositories_under_cap_redeemable_amount = checked_sub(
-                    total_under_cap_redeemable_amount,
-                    *depository_under_cap_redeemable_amount,
-                )?;
-                compute_amount_less_fraction_floor(
+                compute_amount_fraction_floor(
                     requested_backup_collateral_amount,
-                    other_depositories_under_cap_redeemable_amount,
+                    *depository_under_cap_redeemable_amount,
                     total_under_cap_redeemable_amount,
                 )?
             } else {

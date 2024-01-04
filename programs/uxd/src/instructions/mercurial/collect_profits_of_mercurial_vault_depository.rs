@@ -120,14 +120,16 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfMercurialVaultDepository>) ->
     ]];
 
     // 5 - withdraw collateral from mercurial vault for LP tokens
-    mercurial_vault::cpi::withdraw(
-        ctx.accounts
-            .into_withdraw_collateral_from_mercurial_vault_context()
-            .with_signer(depository_signer_seed),
-        lp_token_amount_to_match_collectable_profits_value,
-        // Do not check slippage here
-        0,
-    )?;
+    if lp_token_amount_to_match_collectable_profits_value > 0 {
+        mercurial_vault::cpi::withdraw(
+            ctx.accounts
+                .into_withdraw_collateral_from_mercurial_vault_context()
+                .with_signer(depository_signer_seed),
+            lp_token_amount_to_match_collectable_profits_value,
+            // Do not check slippage here
+            0,
+        )?;
+    }
 
     // 6 - Reload accounts impacted by the withdraw (We need updated numbers for further calculation)
     ctx.accounts.depository_lp_token_vault.reload()?;
@@ -251,9 +253,7 @@ impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
                 .ok()
                 .ok_or(UxdError::MathOverflow)?;
 
-        Ok(owned_lp_tokens_value
-            .checked_sub(redeemable_amount_under_management)
-            .ok_or(UxdError::MathOverflow)?)
+        Ok(owned_lp_tokens_value.saturating_sub(redeemable_amount_under_management))
     }
 }
 

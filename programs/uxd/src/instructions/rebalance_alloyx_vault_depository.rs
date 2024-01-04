@@ -292,9 +292,9 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
                 alloyx_vault_depository.redeemable_amount_under_management,
                 deposited_underflow_collateral,
             )?;
-            // If we deposited, we can stop here
-            return Ok(());
         }
+        // If we deposited, we can stop here (no need to withdraw)
+        return Ok(());
     }
 
     // ---------------------------------------------------------------------
@@ -406,15 +406,18 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
             collateral_mint.as_ref(),
             &[self.alloyx_vault_depository.load()?.bump],
         ]];
+
         token::transfer(
             self.into_transfer_identity_depository_collateral_to_alloyx_vault_depository_collateral_context()
                 .with_signer(identity_depository_pda_signer),
             collateral_amount_after_precision_loss,
-        )?;
-        token::transfer(
-            self.into_transfer_payer_collateral_to_alloyx_vault_depository_collateral_context(),
-            collateral_amount_delta_precision_loss,
-        )?;
+            )?;
+        if collateral_amount_delta_precision_loss > 0 {
+            token::transfer(
+                self.into_transfer_payer_collateral_to_alloyx_vault_depository_collateral_context(),
+                collateral_amount_delta_precision_loss,
+            )?;
+        }
         alloyx_cpi::cpi::deposit(
             self.into_deposit_alloyx_vault_depository_to_alloyx_vault_context()
                 .with_signer(alloyx_vault_depository_pda_signer),
@@ -580,16 +583,19 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
             collateral_mint.as_ref(),
             &[self.alloyx_vault_depository.load()?.bump],
         ]];
+
         alloyx_cpi::cpi::withdraw(
             self.into_withdraw_from_alloyx_vault_to_alloyx_vault_depository_collateral_context()
                 .with_signer(alloyx_vault_depository_pda_signer),
             vault_id.to_owned(),
             shares_amount,
         )?;
-        token::transfer(
-            self.into_transfer_payer_collateral_to_identity_depository_collateral_context(),
-            collateral_amount_delta_precision_loss,
-        )?;
+        if collateral_amount_delta_precision_loss > 0 {
+            token::transfer(
+                self.into_transfer_payer_collateral_to_identity_depository_collateral_context(),
+                collateral_amount_delta_precision_loss,
+            )?;
+        }
         token::transfer(
             self.into_transfer_alloyx_vault_depository_collateral_to_identity_depository_collateral_context()
                 .with_signer(alloyx_vault_depository_pda_signer),

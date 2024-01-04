@@ -4,11 +4,10 @@ use anchor_lang::require;
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
 use crate::utils::checked_add;
-use crate::utils::checked_as_u64;
 use crate::utils::checked_sub;
 use crate::ROUTER_DEPOSITORIES_COUNT;
 
-use super::compute_amount_less_fraction_floor;
+use super::compute_amount_fraction_floor;
 
 pub struct DepositoryInfoForRedeemableAmount {
     pub directly_redeemable: bool,
@@ -36,18 +35,13 @@ pub fn calculate_depositories_redeemable_amount(
         .iter()
         .map(|depository| {
             if !depository.directly_redeemable {
-                return Ok(0);
+                return 0;
             }
-            if depository.redeemable_amount_under_management <= depository.target_redeemable_amount
-            {
-                return Ok(0);
-            }
-            checked_sub(
-                depository.redeemable_amount_under_management,
-                depository.target_redeemable_amount,
-            )
+            depository
+                .redeemable_amount_under_management
+                .saturating_sub(depository.target_redeemable_amount)
         })
-        .collect::<Result<Vec<u64>>>()?;
+        .collect::<Vec<u64>>();
 
     let total_over_target_redeemable_amount =
         calculate_depositories_sum_value(&depositories_over_target_redeemable_amount)?;
@@ -63,14 +57,14 @@ pub fn calculate_depositories_redeemable_amount(
         .iter()
         .map(|depository| {
             if !depository.directly_redeemable {
-                return Ok(0);
+                return 0;
             }
-            Ok(std::cmp::min(
+            std::cmp::min(
                 depository.redeemable_amount_under_management,
                 depository.target_redeemable_amount,
-            ))
+            )
         })
-        .collect::<Result<Vec<u64>>>()?;
+        .collect::<Vec<u64>>();
 
     let total_under_target_redeemable_amount =
         calculate_depositories_sum_value(&depositories_under_target_redeemable_amount)?;
@@ -110,13 +104,9 @@ pub fn calculate_depositories_redeemable_amount(
                 total_over_target_redeemable_amount,
             );
             let depository_primary_redeemable_amount = if total_over_target_redeemable_amount > 0 {
-                let other_depositories_over_target_redeemable_amount = checked_sub(
-                    total_over_target_redeemable_amount,
-                    *depository_over_target_redeemable_amount,
-                )?;
-                compute_amount_less_fraction_floor(
+                compute_amount_fraction_floor(
                     requested_primary_redeemable_amount,
-                    other_depositories_over_target_redeemable_amount,
+                    *depository_over_target_redeemable_amount,
                     total_over_target_redeemable_amount,
                 )?
             } else {
@@ -128,13 +118,9 @@ pub fn calculate_depositories_redeemable_amount(
                 requested_primary_redeemable_amount,
             )?;
             let depository_backup_redeemable_amount = if total_under_target_redeemable_amount > 0 {
-                let other_depositories_under_target_redeemable_amount = checked_sub(
-                    total_under_target_redeemable_amount,
-                    *depository_under_target_redeemable_amount,
-                )?;
-                compute_amount_less_fraction_floor(
+                compute_amount_fraction_floor(
                     requested_backup_redeemable_amount,
-                    other_depositories_under_target_redeemable_amount,
+                    *depository_under_target_redeemable_amount,
                     total_under_target_redeemable_amount,
                 )?
             } else {
@@ -167,7 +153,7 @@ pub fn calculate_depositories_redeemable_amount(
             continue;
         }
         let depository_remaining_after_redeem = checked_sub(
-            checked_as_u64(depository.redeemable_amount_under_management)?,
+            depository.redeemable_amount_under_management,
             depositories_redeemable_amount[i],
         )?;
         let depository_rounding_correction =
