@@ -123,7 +123,7 @@ async fn test_credix_lp_depository_rebalance_no_profit() -> Result<(), program_c
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
                 identity_depository_weight_bps: 50 * 100,
-                mercurial_vault_depository_weight_bps: 0 * 100,
+                mercurial_vault_depository_weight_bps: 0,
                 credix_lp_depository_weight_bps: 50 * 100,
             }),
             router_depositories: None,
