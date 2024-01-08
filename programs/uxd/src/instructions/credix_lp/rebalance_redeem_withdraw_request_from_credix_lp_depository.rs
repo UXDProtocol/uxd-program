@@ -373,7 +373,7 @@ pub(crate) fn handler(
     );
     let withdrawal_profits_collateral_amount_after_precision_loss = checked_sub(
         withdrawal_total_collateral_amount_after_precision_loss,
-        withdrawal_overflow_value,
+        withdrawal_overflow_value_after_precision_loss,
     )?;
 
     // ---------------------------------------------------------------------
