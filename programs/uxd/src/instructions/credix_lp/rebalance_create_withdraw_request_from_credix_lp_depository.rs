@@ -183,7 +183,7 @@ pub(crate) fn handler(
             total_shares_supply,
             total_shares_value,
         )?;
-        checked_sub(owned_shares_value, redeemable_amount_under_management)?
+        owned_shares_value.saturating_sub(redeemable_amount_under_management)
     };
 
     let overflow_value = {
