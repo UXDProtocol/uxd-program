@@ -351,11 +351,6 @@ pub(crate) fn handler(
         total_shares_value_before,
     )?;
 
-    if withdrawal_total_shares_amount == 0 {
-        msg!("[rebalance_redeem_withdraw_request_from_credix_lp_depository:no_withdrawable_liquidity]",);
-        return Ok(());
-    }
-
     let withdrawal_total_collateral_amount_after_precision_loss =
         compute_value_for_shares_amount_floor(
             withdrawal_total_shares_amount,
@@ -363,9 +358,17 @@ pub(crate) fn handler(
             total_shares_value_before,
         )?;
 
+    if withdrawal_total_collateral_amount_after_precision_loss == 0 {
+        msg!("[rebalance_redeem_withdraw_request_from_credix_lp_depository:no_withdrawable_liquidity]",);
+        return Ok(());
+    }
+
     // Precision loss should be taken from the profits, not the overflow
     // Otherwise this means that the precision loss would take out of the backing value
-    let withdrawal_overflow_value_after_precision_loss = withdrawal_overflow_value;
+    let withdrawal_overflow_value_after_precision_loss = std::cmp::min(
+        withdrawal_total_collateral_amount_after_precision_loss,
+        withdrawal_overflow_value,
+    );
     let withdrawal_profits_collateral_amount_after_precision_loss = checked_sub(
         withdrawal_total_collateral_amount_after_precision_loss,
         withdrawal_overflow_value_after_precision_loss,
