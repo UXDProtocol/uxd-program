@@ -168,23 +168,25 @@ pub(crate) fn handler(
             .redeemable_amount_under_management,
     )?;
 
-    let profits_collateral_amount = {
-        let liquidity_collateral_amount: u64 = ctx.accounts.credix_liquidity_collateral.amount;
-        let outstanding_collateral_amount: u64 = ctx
+    let owned_shares_value = {
+        let liquidity_collateral_amount = ctx.accounts.credix_liquidity_collateral.amount;
+        let outstanding_collateral_amount = ctx
             .accounts
             .credix_global_market_state
             .pool_outstanding_credit;
-        let total_shares_supply: u64 = ctx.accounts.credix_shares_mint.supply;
-        let total_shares_value: u64 =
+        let total_shares_supply = ctx.accounts.credix_shares_mint.supply;
+        let total_shares_value =
             checked_add(liquidity_collateral_amount, outstanding_collateral_amount)?;
-        let owned_shares_amount: u64 = ctx.accounts.depository_shares.amount;
-        let owned_shares_value: u64 = compute_value_for_shares_amount_floor(
+        let owned_shares_amount = ctx.accounts.depository_shares.amount;
+        compute_value_for_shares_amount_floor(
             owned_shares_amount,
             total_shares_supply,
             total_shares_value,
-        )?;
-        owned_shares_value.saturating_sub(redeemable_amount_under_management)
+        )?
     };
+
+    let profits_collateral_amount =
+        owned_shares_value.saturating_sub(redeemable_amount_under_management);
 
     let overflow_value = {
         let redeemable_amount_under_management_target_amount =
@@ -210,7 +212,10 @@ pub(crate) fn handler(
     // -- We just create the credix withdraw request with the computed withdrawal amount
     // ---------------------------------------------------------------------
 
-    let requested_collateral_amount = checked_add(profits_collateral_amount, overflow_value)?;
+    let requested_collateral_amount = std::cmp::min(
+        checked_add(profits_collateral_amount, overflow_value)?,
+        owned_shares_value,
+    );
     msg!(
         "[rebalance_create_withdraw_request_from_credix_lp_depository:requested_collateral_amount:{}]",
         requested_collateral_amount
