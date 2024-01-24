@@ -1,13 +1,12 @@
-const {
+import {
   Controller,
   CredixLpDepository,
   UXDClient,
   nativeToUi,
-} = require('@uxd-protocol/uxd-client');
-const { Transaction, ComputeBudgetProgram } = require('@solana/web3.js');
-const { web3 } = require('@project-serum/anchor');
-const { BN } = require('bn.js');
-const {
+} from '@uxd-protocol/uxd-client';
+import { Transaction, ComputeBudgetProgram } from '@solana/web3.js';
+import { BN, web3 } from '@project-serum/anchor';
+import {
   createCredixLpDepository,
   createIdentityDepository,
   createMercurialVaultDepository,
@@ -15,7 +14,7 @@ const {
   payer,
   TXN_OPTS,
   uxdProgramId,
-} = require('./common');
+} from './common';
 
 async function main() {
   console.log();
@@ -136,7 +135,6 @@ async function main() {
   const credixProgramId = credixLpDepository.credixProgramId;
   const credixGlobalMarketState = credixLpDepository.credixGlobalMarketState;
   const credixPass = credixLpDepository.credixPass;
-  const credixWithdrawEpoch = credixLpDepository.credixWithdrawEpoch;
   const credixProgram = CredixLpDepository.getCredixProgram(
     getConnection(),
     credixProgramId
@@ -155,10 +153,6 @@ async function main() {
   console.log(
     'credixGlobalMarketStateAccount.withdrawalFee',
     credixGlobalMarketStateAccount.withdrawalFee
-  );
-  console.log(
-    'credixGlobalMarketStateAccount.latestWithdrawEpochEnd:',
-    new Date(credixGlobalMarketStateAccount.latestWithdrawEpochEnd * 1000)
   );
   console.log(
     'credixGlobalMarketStateAccount.poolOutstandingCredit',
@@ -189,71 +183,6 @@ async function main() {
   );
   console.log('> credixPassAccount');
   console.log('credixPassAccount.active', credixPassAccount.active);
-  console.log('credixPassAccount.isBorrower', credixPassAccount.isBorrower);
-  console.log('credixPassAccount.isInvestor', credixPassAccount.isInvestor);
-  console.log(
-    'credixPassAccount.disableWithdrawalFee',
-    credixPassAccount.disableWithdrawalFee
-  );
-  console.log(
-    'credixPassAccount.bypassWithdrawEpochs',
-    credixPassAccount.bypassWithdrawEpochs
-  );
-  console.log(
-    'credixPassAccount.releaseTimestamp:',
-    new Date(credixPassAccount.releaseTimestamp * 1000)
-  );
-  console.log();
-
-  const credixWithdrawEpochAccount =
-    await CredixLpDepository.getCredixWithdrawEpochAccount(
-      credixProgram,
-      credixWithdrawEpoch
-    );
-  console.log('> credixWithdrawEpochAccount');
-  console.log(
-    'credixWithdrawEpochAccount.goLive:',
-    new Date(credixWithdrawEpochAccount.goLive * 1000)
-  );
-  console.log(
-    'credixWithdrawEpochAccount.goLive+request:',
-    new Date(
-      credixWithdrawEpochAccount.goLive.addn(
-        credixWithdrawEpochAccount.requestSeconds
-      ) * 1000
-    )
-  );
-  console.log(
-    'credixWithdrawEpochAccount.goLive+request+redeem:',
-    new Date(
-      credixWithdrawEpochAccount.goLive
-        .addn(credixWithdrawEpochAccount.requestSeconds)
-        .addn(credixWithdrawEpochAccount.redeemSeconds) * 1000
-    )
-  );
-  console.log(
-    'credixWithdrawEpochAccount.goLive+request+redeem+availableLiquidity:',
-    new Date(
-      credixWithdrawEpochAccount.goLive
-        .addn(credixWithdrawEpochAccount.requestSeconds)
-        .addn(credixWithdrawEpochAccount.redeemSeconds)
-        .addn(credixWithdrawEpochAccount.availableLiquiditySeconds) * 1000
-    )
-  );
-  console.log(
-    'credixWithdrawEpochAccount.totalRequestedBaseAmount',
-    nativeToUi(
-      credixWithdrawEpochAccount.totalRequestedBaseAmount,
-      credixBaseDecimals
-    )
-  );
-  console.log(
-    'credixWithdrawEpochAccount.participatingInvestorsTotalLpAmount',
-    nativeToUi(
-      credixWithdrawEpochAccount.participatingInvestorsTotalLpAmount,
-      credixBaseDecimals
-    )
-  );
   console.log();
 
   const credixSharesMintAccount = await getConnection().getTokenSupply(
@@ -360,18 +289,15 @@ async function main() {
   let overflow_value = redeemable_amount_under_management.sub(
     redeemable_amount_under_management_target_amount
   );
-  if (overflow_value < 0) {
-    overflow_value = new BN(0);
-  }
   console.log('> overflow_value:', overflow_value.toString());
 
   console.log();
 }
 
 function compute_value_for_shares_amount_floor(
-  shares_amount,
-  total_shares_supply,
-  total_shares_value
+  shares_amount: BN,
+  total_shares_supply: BN,
+  total_shares_value: BN
 ) {
   return shares_amount.mul(total_shares_value).div(total_shares_supply);
 }
