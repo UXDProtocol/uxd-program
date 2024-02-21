@@ -5,6 +5,12 @@
 [![Sec3 Vulnerability Scanning](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-sec3-vulnerability-scanning.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-sec3-vulnerability-scanning.yml)
 [![Cargo Audit](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-audit.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-audit.yml)
 
+## Disclaimer
+
+**This branch contains a version of the UXD Program altered for hackathon to ease integration. Devnet ONLY.**
+
+---
+
 The actual deployed state of each contract should live in a protected master branch. The latest master should always reflect the code deployed to all relevant chains
 
 It currently sits at:

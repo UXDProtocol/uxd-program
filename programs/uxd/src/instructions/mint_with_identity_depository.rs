@@ -17,13 +17,15 @@ use anchor_spl::token::Transfer;
 
 #[derive(Accounts)]
 pub struct MintWithIdentityDepository<'info> {
+    /// CHECK DISABLED FOR HACKATHON
+    ///
     /// #1 This IX should only be accessible by the router or the DAO
-    #[account(
-        constraint = (
-            authority.key() == controller.key()
-            || authority.key() == controller.load()?.authority
-        )  @UxdError::InvalidAuthority,
-    )]
+    // #[account(
+    //     constraint = (
+    //         authority.key() == controller.key()
+    //         || authority.key() == controller.load()?.authority
+    //     )  @UxdError::InvalidAuthority,
+    // )]
     pub authority: Signer<'info>,
 
     /// #2
