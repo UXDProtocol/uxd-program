@@ -72,23 +72,23 @@ pub struct ExchangeLiquidityWithCredixLpDepository<'info> {
     pub credix_lp_depository_shares: Box<Account<'info, TokenAccount>>,
 
     /// #7
-    pub funding: Signer<'info>,
+    pub user: Signer<'info>,
 
     /// #8
     #[account(
         mut,
         token::mint = collateral_mint,
-        token::authority = funding,
+        token::authority = user,
     )]
-    pub funding_collateral: Box<Account<'info, TokenAccount>>,
+    pub user_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #9
     #[account(
         mut,
         token::mint = credix_shares_mint,
-        token::authority = funding,
+        token::authority = user,
     )]
-    pub funding_credix_shares: Box<Account<'info, TokenAccount>>,
+    pub user_credix_shares: Box<Account<'info, TokenAccount>>,
 
     /// #10
     pub collateral_mint: Box<Account<'info, Mint>>,
@@ -116,8 +116,8 @@ pub(crate) fn handler(
     let identity_depository_collateral_amount_before =
         ctx.accounts.identity_depository_collateral.amount;
     let credix_lp_depository_shares_amount_before = ctx.accounts.credix_lp_depository_shares.amount;
-    let funding_collateral_amount_before = ctx.accounts.funding_collateral.amount;
-    let funding_credix_shares_amount_before = ctx.accounts.funding_credix_shares.amount;
+    let user_collateral_amount_before = ctx.accounts.user_collateral.amount;
+    let user_credix_shares_amount_before = ctx.accounts.user_credix_shares.amount;
 
     // Compute the amount of shares we will exchange for the provided collateral
     let redeemable_amount_under_management = ctx
@@ -125,11 +125,28 @@ pub(crate) fn handler(
         .credix_lp_depository
         .load()?
         .redeemable_amount_under_management;
-    let available_shares = ctx.accounts.credix_lp_depository_shares.amount;
+    let available_shares_amount = ctx.accounts.credix_lp_depository_shares.amount;
     let shares_amount = checked_as_u64(
-        u128::from(available_shares) * u128::from(collateral_amount)
+        u128::from(available_shares_amount) * u128::from(collateral_amount)
             / redeemable_amount_under_management,
     )?;
+
+    msg!(
+        "[exchanged_liquidity_with_credix_lp_depository:redeemable_amount_under_management:{}]",
+        redeemable_amount_under_management
+    );
+    msg!(
+        "[exchanged_liquidity_with_credix_lp_depository:collateral_amount:{}]",
+        collateral_amount
+    );
+    msg!(
+        "[exchanged_liquidity_with_credix_lp_depository:available_shares_amount:{}]",
+        available_shares_amount
+    );
+    msg!(
+        "[exchanged_liquidity_with_credix_lp_depository:shares_amount:{}]",
+        shares_amount
+    );
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -156,7 +173,7 @@ pub(crate) fn handler(
     );
     token::transfer(
         ctx.accounts
-            .into_transfer_funding_collateral_to_identity_depository_collateral_context(),
+            .into_transfer_user_collateral_to_identity_depository_collateral_context(),
         collateral_amount,
     )?;
 
@@ -166,7 +183,7 @@ pub(crate) fn handler(
     );
     token::transfer(
         ctx.accounts
-            .into_transfer_funding_collateral_to_identity_depository_collateral_context()
+            .into_transfer_credix_lp_depository_shares_to_user_credix_shares_context()
             .with_signer(credix_lp_depository_pda_signer),
         shares_amount,
     )?;
@@ -174,8 +191,8 @@ pub(crate) fn handler(
     // Refresh account states after withdrawal
     ctx.accounts.identity_depository_collateral.reload()?;
     ctx.accounts.credix_lp_depository_shares.reload()?;
-    ctx.accounts.funding_collateral.reload()?;
-    ctx.accounts.funding_credix_shares.reload()?;
+    ctx.accounts.user_collateral.reload()?;
+    ctx.accounts.user_credix_shares.reload()?;
 
     // ---------------------------------------------------------------------
     // -- Phase 3
@@ -187,8 +204,8 @@ pub(crate) fn handler(
     let identity_depository_collateral_amount_after =
         ctx.accounts.identity_depository_collateral.amount;
     let credix_lp_depository_shares_amount_after = ctx.accounts.credix_lp_depository_shares.amount;
-    let funding_collateral_amount_after = ctx.accounts.funding_collateral.amount;
-    let funding_credix_shares_amount_after = ctx.accounts.funding_credix_shares.amount;
+    let user_collateral_amount_after = ctx.accounts.user_collateral.amount;
+    let user_credix_shares_amount_after = ctx.accounts.user_credix_shares.amount;
 
     // Compute changes in states
     let identity_depository_collateral_amount_increase = compute_increase(
@@ -199,13 +216,11 @@ pub(crate) fn handler(
         credix_lp_depository_shares_amount_before,
         credix_lp_depository_shares_amount_after,
     )?;
-    let funding_collateral_amount_decrease = compute_decrease(
-        funding_collateral_amount_before,
-        funding_collateral_amount_after,
-    )?;
-    let funding_credix_shares_amount_increase = compute_increase(
-        funding_credix_shares_amount_before,
-        funding_credix_shares_amount_after,
+    let user_collateral_amount_decrease =
+        compute_decrease(user_collateral_amount_before, user_collateral_amount_after)?;
+    let user_credix_shares_amount_increase = compute_increase(
+        user_credix_shares_amount_before,
+        user_credix_shares_amount_after,
     )?;
 
     // Log deltas for debriefing the changes
@@ -218,12 +233,12 @@ pub(crate) fn handler(
         credix_lp_depository_shares_amount_decrease
     );
     msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:funding_collateral_amount_decrease:{}]",
-        funding_collateral_amount_decrease
+        "[exchanged_liquidity_with_credix_lp_depository:user_collateral_amount_decrease:{}]",
+        user_collateral_amount_decrease
     );
     msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:funding_credix_shares_amount_increase:{}]",
-        funding_credix_shares_amount_increase
+        "[exchanged_liquidity_with_credix_lp_depository:user_credix_shares_amount_increase:{}]",
+        user_credix_shares_amount_increase
     );
 
     // Fact check
@@ -236,11 +251,11 @@ pub(crate) fn handler(
         UxdError::CollateralDepositDoesntMatchTokenValue
     );
     require!(
-        funding_collateral_amount_decrease == collateral_amount,
+        user_collateral_amount_decrease == collateral_amount,
         UxdError::CollateralDepositAmountsDoesntMatch
     );
     require!(
-        funding_credix_shares_amount_increase == shares_amount,
+        user_credix_shares_amount_increase == shares_amount,
         UxdError::CollateralDepositDoesntMatchTokenValue
     );
 
@@ -260,7 +275,7 @@ pub(crate) fn handler(
     });
 
     // Accounting for identity_depository
-    let mut identity_depository = ctx.accounts.credix_lp_depository.load_mut()?;
+    let mut identity_depository = ctx.accounts.identity_depository.load_mut()?;
     identity_depository.collateral_amount_deposited = checked_add(
         identity_depository.collateral_amount_deposited,
         collateral_amount.into(),
@@ -287,23 +302,23 @@ pub(crate) fn handler(
 
 // Into functions
 impl<'info> ExchangeLiquidityWithCredixLpDepository<'info> {
-    pub fn into_transfer_funding_collateral_to_identity_depository_collateral_context(
+    pub fn into_transfer_user_collateral_to_identity_depository_collateral_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
-            from: self.funding_collateral.to_account_info(),
+            from: self.user_collateral.to_account_info(),
             to: self.identity_depository_collateral.to_account_info(),
-            authority: self.funding.to_account_info(),
+            authority: self.user.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
-    pub fn into_transfer_credix_lp_depository_shares_to_funding_credix_shares_context(
+    pub fn into_transfer_credix_lp_depository_shares_to_user_credix_shares_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
             from: self.credix_lp_depository_shares.to_account_info(),
-            to: self.funding_credix_shares.to_account_info(),
+            to: self.user_credix_shares.to_account_info(),
             authority: self.credix_lp_depository.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();

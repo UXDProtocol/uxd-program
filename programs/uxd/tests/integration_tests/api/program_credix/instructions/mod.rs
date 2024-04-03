@@ -11,6 +11,7 @@ pub mod process_repay_deal;
 pub mod process_set_locked_liquidity;
 pub mod process_set_repayment_schedule;
 pub mod process_set_tranches;
+pub mod process_thaw_freeze_token_account;
 pub mod process_update_global_market_state;
 pub mod process_withdraw_from_deal;
 
@@ -27,5 +28,6 @@ pub use process_repay_deal::*;
 pub use process_set_locked_liquidity::*;
 pub use process_set_repayment_schedule::*;
 pub use process_set_tranches::*;
+pub use process_thaw_freeze_token_account::*;
 pub use process_update_global_market_state::*;
 pub use process_withdraw_from_deal::*;
