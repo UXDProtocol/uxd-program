@@ -20,7 +20,7 @@ pub async fn process_exchange_liquidity_with_credix_lp_depository(
     collateral_mint: &Pubkey,
     user: &Keypair,
     user_collateral: &Pubkey,
-    user_credix_shares: &Pubkey,
+    receiver_credix_shares: &Pubkey,
     collateral_amount: u64,
 ) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
@@ -75,8 +75,8 @@ pub async fn process_exchange_liquidity_with_credix_lp_depository(
         program_context::read_account_packed::<Account>(program_context, user_collateral)
             .await?
             .amount;
-    let user_credix_shares_amount_before =
-        program_context::read_account_packed::<Account>(program_context, user_credix_shares)
+    let receiver_credix_shares_amount_before =
+        program_context::read_account_packed::<Account>(program_context, receiver_credix_shares)
             .await?
             .amount;
 
@@ -92,7 +92,7 @@ pub async fn process_exchange_liquidity_with_credix_lp_depository(
         credix_shares_mint,
         user: user.pubkey(),
         user_collateral: *user_collateral,
-        user_credix_shares: *user_credix_shares,
+        receiver_credix_shares: *receiver_credix_shares,
         system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
     };
@@ -134,8 +134,8 @@ pub async fn process_exchange_liquidity_with_credix_lp_depository(
         program_context::read_account_packed::<Account>(program_context, user_collateral)
             .await?
             .amount;
-    let user_credix_shares_amount_after =
-        program_context::read_account_packed::<Account>(program_context, user_credix_shares)
+    let receiver_credix_shares_amount_after =
+        program_context::read_account_packed::<Account>(program_context, receiver_credix_shares)
             .await?
             .amount;
 
@@ -189,7 +189,7 @@ pub async fn process_exchange_liquidity_with_credix_lp_depository(
     );
 
     // Expected transacted shares amount
-    let shares_amount = u64::try_from(
+    let exchanged_shares_amount = u64::try_from(
         u128::from(credix_lp_depository_shares_amount_before) * u128::from(collateral_amount)
             / credix_lp_depository_before.redeemable_amount_under_management,
     )
@@ -197,13 +197,13 @@ pub async fn process_exchange_liquidity_with_credix_lp_depository(
 
     // credix_lp_depository_shares.amount must have decreased by the computed shares amount
     assert_eq!(
-        credix_lp_depository_shares_amount_before - shares_amount,
+        credix_lp_depository_shares_amount_before - exchanged_shares_amount,
         credix_lp_depository_shares_amount_after,
     );
-    // user_credix_shares.amount must have increased by the computed shares amount
+    // receiver_credix_shares.amount must have increased by the computed shares amount
     assert_eq!(
-        user_credix_shares_amount_before + shares_amount,
-        user_credix_shares_amount_after,
+        receiver_credix_shares_amount_before + exchanged_shares_amount,
+        receiver_credix_shares_amount_after,
     );
 
     // Done

@@ -86,9 +86,8 @@ pub struct ExchangeLiquidityWithCredixLpDepository<'info> {
     #[account(
         mut,
         token::mint = credix_shares_mint,
-        token::authority = user,
     )]
-    pub user_credix_shares: Box<Account<'info, TokenAccount>>,
+    pub receiver_credix_shares: Box<Account<'info, TokenAccount>>,
 
     /// #10
     pub collateral_mint: Box<Account<'info, Mint>>,
@@ -117,7 +116,7 @@ pub(crate) fn handler(
         ctx.accounts.identity_depository_collateral.amount;
     let credix_lp_depository_shares_amount_before = ctx.accounts.credix_lp_depository_shares.amount;
     let user_collateral_amount_before = ctx.accounts.user_collateral.amount;
-    let user_credix_shares_amount_before = ctx.accounts.user_credix_shares.amount;
+    let receiver_credix_shares_amount_before = ctx.accounts.receiver_credix_shares.amount;
 
     // Compute the amount of shares we will exchange for the provided collateral
     let redeemable_amount_under_management = ctx
@@ -126,7 +125,7 @@ pub(crate) fn handler(
         .load()?
         .redeemable_amount_under_management;
     let available_shares_amount = ctx.accounts.credix_lp_depository_shares.amount;
-    let shares_amount = checked_as_u64(
+    let exchanged_shares_amount = checked_as_u64(
         u128::from(available_shares_amount) * u128::from(collateral_amount)
             / redeemable_amount_under_management,
     )?;
@@ -144,8 +143,8 @@ pub(crate) fn handler(
         available_shares_amount
     );
     msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:shares_amount:{}]",
-        shares_amount
+        "[exchanged_liquidity_with_credix_lp_depository:exchanged_shares_amount:{}]",
+        exchanged_shares_amount
     );
 
     // ---------------------------------------------------------------------
@@ -179,20 +178,20 @@ pub(crate) fn handler(
 
     msg!(
         "[exchanged_liquidity_with_credix_lp_depository:shares_transfer:{}]",
-        shares_amount
+        exchanged_shares_amount
     );
     token::transfer(
         ctx.accounts
-            .into_transfer_credix_lp_depository_shares_to_user_credix_shares_context()
+            .into_transfer_credix_lp_depository_shares_to_receiver_credix_shares_context()
             .with_signer(credix_lp_depository_pda_signer),
-        shares_amount,
+        exchanged_shares_amount,
     )?;
 
     // Refresh account states after withdrawal
     ctx.accounts.identity_depository_collateral.reload()?;
     ctx.accounts.credix_lp_depository_shares.reload()?;
     ctx.accounts.user_collateral.reload()?;
-    ctx.accounts.user_credix_shares.reload()?;
+    ctx.accounts.receiver_credix_shares.reload()?;
 
     // ---------------------------------------------------------------------
     // -- Phase 3
@@ -205,7 +204,7 @@ pub(crate) fn handler(
         ctx.accounts.identity_depository_collateral.amount;
     let credix_lp_depository_shares_amount_after = ctx.accounts.credix_lp_depository_shares.amount;
     let user_collateral_amount_after = ctx.accounts.user_collateral.amount;
-    let user_credix_shares_amount_after = ctx.accounts.user_credix_shares.amount;
+    let receiver_credix_shares_amount_after = ctx.accounts.receiver_credix_shares.amount;
 
     // Compute changes in states
     let identity_depository_collateral_amount_increase = compute_increase(
@@ -218,9 +217,9 @@ pub(crate) fn handler(
     )?;
     let user_collateral_amount_decrease =
         compute_decrease(user_collateral_amount_before, user_collateral_amount_after)?;
-    let user_credix_shares_amount_increase = compute_increase(
-        user_credix_shares_amount_before,
-        user_credix_shares_amount_after,
+    let receiver_credix_shares_amount_increase = compute_increase(
+        receiver_credix_shares_amount_before,
+        receiver_credix_shares_amount_after,
     )?;
 
     // Log deltas for debriefing the changes
@@ -237,8 +236,8 @@ pub(crate) fn handler(
         user_collateral_amount_decrease
     );
     msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:user_credix_shares_amount_increase:{}]",
-        user_credix_shares_amount_increase
+        "[exchanged_liquidity_with_credix_lp_depository:receiver_credix_shares_amount_increase:{}]",
+        receiver_credix_shares_amount_increase
     );
 
     // Fact check
@@ -247,7 +246,7 @@ pub(crate) fn handler(
         UxdError::CollateralDepositAmountsDoesntMatch
     );
     require!(
-        credix_lp_depository_shares_amount_decrease == shares_amount,
+        credix_lp_depository_shares_amount_decrease == exchanged_shares_amount,
         UxdError::CollateralDepositDoesntMatchTokenValue
     );
     require!(
@@ -255,7 +254,7 @@ pub(crate) fn handler(
         UxdError::CollateralDepositAmountsDoesntMatch
     );
     require!(
-        user_credix_shares_amount_increase == shares_amount,
+        receiver_credix_shares_amount_increase == exchanged_shares_amount,
         UxdError::CollateralDepositDoesntMatchTokenValue
     );
 
@@ -271,7 +270,7 @@ pub(crate) fn handler(
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.credix_lp_depository.key(),
         collateral_amount,
-        shares_amount,
+        shares_amount: exchanged_shares_amount,
     });
 
     // Accounting for identity_depository
@@ -313,12 +312,12 @@ impl<'info> ExchangeLiquidityWithCredixLpDepository<'info> {
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
-    pub fn into_transfer_credix_lp_depository_shares_to_user_credix_shares_context(
+    pub fn into_transfer_credix_lp_depository_shares_to_receiver_credix_shares_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
             from: self.credix_lp_depository_shares.to_account_info(),
-            to: self.user_credix_shares.to_account_info(),
+            to: self.receiver_credix_shares.to_account_info(),
             authority: self.credix_lp_depository.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();

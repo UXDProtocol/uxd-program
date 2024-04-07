@@ -210,6 +210,7 @@ async fn test_credix_lp_depository_exchange_liquidity() -> Result<(), program_co
     // ---------------------------------------------------------------------
     // -- Phase 3
     // -- User will now trade USDC for all the liquidity in the credix_lp_depository
+    // -- User will send the credix shares to an external wallet's account
     // ---------------------------------------------------------------------
 
     // Resolve credix's important PDAs
@@ -228,13 +229,14 @@ async fn test_credix_lp_depository_exchange_liquidity() -> Result<(), program_co
         &credix_shares_mint,
     );
 
-    // Create user's shares ATA
-    let user_credix_shares =
+    // Create receiver's shares ATA
+    let receiver = Keypair::new();
+    let receiver_credix_shares =
         program_spl::instructions::process_associated_token_account_get_or_init(
             &mut program_context,
             &payer,
             &credix_shares_mint,
-            &user.pubkey(),
+            &receiver.pubkey(),
         )
         .await?;
 
@@ -249,7 +251,7 @@ async fn test_credix_lp_depository_exchange_liquidity() -> Result<(), program_co
     program_credix::instructions::process_thaw_freeze_token_account(
         &mut program_context,
         &credix_multisig,
-        &user_credix_shares,
+        &receiver_credix_shares,
         false,
     )
     .await?;
@@ -263,7 +265,7 @@ async fn test_credix_lp_depository_exchange_liquidity() -> Result<(), program_co
         &collateral_mint.pubkey(),
         &user,
         &user_collateral,
-        &user_credix_shares,
+        &receiver_credix_shares,
         credix_lp_depository_redeemable_amount_under_management / 2,
     )
     .await?;
@@ -273,7 +275,7 @@ async fn test_credix_lp_depository_exchange_liquidity() -> Result<(), program_co
         &collateral_mint.pubkey(),
         &user,
         &user_collateral,
-        &user_credix_shares,
+        &receiver_credix_shares,
         credix_lp_depository_redeemable_amount_under_management / 2,
     )
     .await?;
