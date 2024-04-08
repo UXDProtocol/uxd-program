@@ -79,14 +79,17 @@ import {
       credixLpDepositoryEditSuite({ authority, controller });
     });
 
-    describe('credixLpDepositoryMintSuite', function () {
-      credixLpDepositoryMintSuite({
-        authority,
-        user,
-        payer: bank,
-        controller,
-      });
-    });
+    /**
+     * Disabling minting test on devnet since credix program has minting disabled now
+     */
+    // describe('credixLpDepositoryMintSuite', function () {
+    //   credixLpDepositoryMintSuite({
+    //     authority,
+    //     user,
+    //     payer: bank,
+    //     controller,
+    //   });
+    // });
 
     this.afterAll('Transfer funds back to bank', async function () {
       await transferAllTokens(
