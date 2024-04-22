@@ -274,8 +274,8 @@ pub mod uxd {
 
     // Allow exchanging illiquid tokens locked with liquid tokens, pro-rata of LTV
     #[access_control(
-            ctx.accounts.validate()
-        )]
+        ctx.accounts.validate()
+    )]
     pub fn exchange_liquidity_with_credix_lp_depository(
         ctx: Context<ExchangeLiquidityWithCredixLpDepository>,
         collateral_amount: u64,
