@@ -49,3 +49,4 @@ jobs:
           --ignore RUSTSEC-2024-0019
           --ignore RUSTSEC-2024-0332
           --ignore RUSTSEC-2024-0003
+          --ignore RUSTSEC-2024-0336

@@ -28,6 +28,9 @@ pub struct ExchangeLiquidityWithCredixLpDepository<'info> {
     pub payer: Signer<'info>,
 
     /// #2
+    pub user: Signer<'info>,
+
+    /// #3
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -37,7 +40,7 @@ pub struct ExchangeLiquidityWithCredixLpDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #3
+    /// #4
     #[account(
         mut,
         seeds = [IDENTITY_DEPOSITORY_NAMESPACE],
@@ -45,7 +48,7 @@ pub struct ExchangeLiquidityWithCredixLpDepository<'info> {
     )]
     pub identity_depository: AccountLoader<'info, IdentityDepository>,
 
-    /// #4
+    /// #5
     #[account(
         mut,
         seeds = [IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE],
@@ -55,7 +58,7 @@ pub struct ExchangeLiquidityWithCredixLpDepository<'info> {
     )]
     pub identity_depository_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #5
+    /// #6
     #[account(
         mut,
         seeds = [CREDIX_LP_DEPOSITORY_NAMESPACE, credix_lp_depository.load()?.credix_global_market_state.key().as_ref(), credix_lp_depository.load()?.collateral_mint.as_ref()],
@@ -67,12 +70,9 @@ pub struct ExchangeLiquidityWithCredixLpDepository<'info> {
     )]
     pub credix_lp_depository: AccountLoader<'info, CredixLpDepository>,
 
-    /// #6
+    /// #7
     #[account(mut)]
     pub credix_lp_depository_shares: Box<Account<'info, TokenAccount>>,
-
-    /// #7
-    pub user: Signer<'info>,
 
     /// #8
     #[account(
@@ -131,21 +131,12 @@ pub(crate) fn handler(
     )?;
 
     msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:redeemable_amount_under_management:{}]",
+        "[redeemable_amount_under_management:{}]",
         redeemable_amount_under_management
     );
-    msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:collateral_amount:{}]",
-        collateral_amount
-    );
-    msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:available_shares_amount:{}]",
-        available_shares_amount
-    );
-    msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:exchanged_shares_amount:{}]",
-        exchanged_shares_amount
-    );
+    msg!("[collateral_amount:{}]", collateral_amount);
+    msg!("[available_shares_amount:{}]", available_shares_amount);
+    msg!("[exchanged_shares_amount:{}]", exchanged_shares_amount);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -166,20 +157,14 @@ pub(crate) fn handler(
         &[ctx.accounts.credix_lp_depository.load()?.bump],
     ]];
 
-    msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:collateral_transfer:{}]",
-        collateral_amount
-    );
+    msg!("[collateral_transfer:{}]", collateral_amount);
     token::transfer(
         ctx.accounts
             .into_transfer_user_collateral_to_identity_depository_collateral_context(),
         collateral_amount,
     )?;
 
-    msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:shares_transfer:{}]",
-        exchanged_shares_amount
-    );
+    msg!("[shares_transfer:{}]", exchanged_shares_amount);
     token::transfer(
         ctx.accounts
             .into_transfer_credix_lp_depository_shares_to_receiver_credix_shares_context()
@@ -224,19 +209,19 @@ pub(crate) fn handler(
 
     // Log deltas for debriefing the changes
     msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:identity_depository_collateral_amount_increase:{}]",
+        "[identity_depository_collateral_amount_increase:{}]",
         identity_depository_collateral_amount_increase
     );
     msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:credix_lp_depository_shares_amount_decrease:{}]",
+        "[credix_lp_depository_shares_amount_decrease:{}]",
         credix_lp_depository_shares_amount_decrease
     );
     msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:user_collateral_amount_decrease:{}]",
+        "[user_collateral_amount_decrease:{}]",
         user_collateral_amount_decrease
     );
     msg!(
-        "[exchanged_liquidity_with_credix_lp_depository:receiver_credix_shares_amount_increase:{}]",
+        "[receiver_credix_shares_amount_increase:{}]",
         receiver_credix_shares_amount_increase
     );
 
