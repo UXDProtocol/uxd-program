@@ -1,5 +1,5 @@
 {
-  "version": "8.2.0",
+  "version": "8.3.0",
   "name": "uxd",
   "instructions": [
     {
@@ -1754,39 +1754,39 @@
           "docs": ["#1"]
         },
         {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false,
+          "name": "user",
+          "isMut": false,
+          "isSigner": true,
           "docs": ["#2"]
         },
         {
-          "name": "identityDepository",
+          "name": "controller",
           "isMut": true,
           "isSigner": false,
           "docs": ["#3"]
         },
         {
-          "name": "identityDepositoryCollateral",
+          "name": "identityDepository",
           "isMut": true,
           "isSigner": false,
           "docs": ["#4"]
         },
         {
-          "name": "credixLpDepository",
+          "name": "identityDepositoryCollateral",
           "isMut": true,
           "isSigner": false,
           "docs": ["#5"]
         },
         {
-          "name": "credixLpDepositoryShares",
+          "name": "credixLpDepository",
           "isMut": true,
           "isSigner": false,
           "docs": ["#6"]
         },
         {
-          "name": "user",
-          "isMut": false,
-          "isSigner": true,
+          "name": "credixLpDepositoryShares",
+          "isMut": true,
+          "isSigner": false,
           "docs": ["#7"]
         },
         {
@@ -3731,8 +3731,5 @@
       "name": "InvalidOutflowLimitPerEpochBps",
       "msg": "The outflow_limit_per_epoch_bps is invalid: over 100%."
     }
-  ],
-  "metadata": {
-    "address": "CW5VzSk7WC4NPyuNt19VFev9FUHhyk5xxHTj2DUWBexu"
-  }
+  ]
 }

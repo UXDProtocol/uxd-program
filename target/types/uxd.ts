@@ -1,5 +1,5 @@
 export type Uxd = {
-  version: '8.2.0';
+  version: '8.3.0';
   name: 'uxd';
   instructions: [
     {
@@ -1752,39 +1752,39 @@ export type Uxd = {
           docs: ['#1'];
         },
         {
-          name: 'controller';
-          isMut: true;
-          isSigner: false;
+          name: 'user';
+          isMut: false;
+          isSigner: true;
           docs: ['#2'];
         },
         {
-          name: 'identityDepository';
+          name: 'controller';
           isMut: true;
           isSigner: false;
           docs: ['#3'];
         },
         {
-          name: 'identityDepositoryCollateral';
+          name: 'identityDepository';
           isMut: true;
           isSigner: false;
           docs: ['#4'];
         },
         {
-          name: 'credixLpDepository';
+          name: 'identityDepositoryCollateral';
           isMut: true;
           isSigner: false;
           docs: ['#5'];
         },
         {
-          name: 'credixLpDepositoryShares';
+          name: 'credixLpDepository';
           isMut: true;
           isSigner: false;
           docs: ['#6'];
         },
         {
-          name: 'user';
-          isMut: false;
-          isSigner: true;
+          name: 'credixLpDepositoryShares';
+          isMut: true;
+          isSigner: false;
           docs: ['#7'];
         },
         {
@@ -3733,7 +3733,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  version: '8.2.0',
+  version: '8.3.0',
   name: 'uxd',
   instructions: [
     {
@@ -5486,39 +5486,39 @@ export const IDL: Uxd = {
           docs: ['#1'],
         },
         {
-          name: 'controller',
-          isMut: true,
-          isSigner: false,
+          name: 'user',
+          isMut: false,
+          isSigner: true,
           docs: ['#2'],
         },
         {
-          name: 'identityDepository',
+          name: 'controller',
           isMut: true,
           isSigner: false,
           docs: ['#3'],
         },
         {
-          name: 'identityDepositoryCollateral',
+          name: 'identityDepository',
           isMut: true,
           isSigner: false,
           docs: ['#4'],
         },
         {
-          name: 'credixLpDepository',
+          name: 'identityDepositoryCollateral',
           isMut: true,
           isSigner: false,
           docs: ['#5'],
         },
         {
-          name: 'credixLpDepositoryShares',
+          name: 'credixLpDepository',
           isMut: true,
           isSigner: false,
           docs: ['#6'],
         },
         {
-          name: 'user',
-          isMut: false,
-          isSigner: true,
+          name: 'credixLpDepositoryShares',
+          isMut: true,
+          isSigner: false,
           docs: ['#7'],
         },
         {
