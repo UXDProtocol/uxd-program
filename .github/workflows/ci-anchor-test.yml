@@ -12,7 +12,7 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_TOOLCHAIN: 1.80
+  RUST_TOOLCHAIN: 1.80.1
   SOLANA_VERSION: 1.18.12
   ANCHOR_VERSION: 0.26.0
   CLUSTER: 'devnet'
@@ -54,7 +54,7 @@ jobs:
         with:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
-          profile: minimal
+          profile: default
       # Install solana
       - name: Cache Solana Tool Suite
         uses: actions/cache@v2
