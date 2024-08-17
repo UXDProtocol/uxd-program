@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Display)]
 pub enum ProgramError {
     BanksClient(solana_program_test::BanksClientError),
     Client(solana_client::client_error::ClientError),
