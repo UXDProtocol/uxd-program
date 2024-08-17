@@ -48,9 +48,9 @@ num = "0.4.0"
 proptest = "1.2.0"
 async-trait = "0.1.73"
 
-solana-sdk = "1.18"
-solana-client = "1.18"
-solana-program-test = "1.18"
+solana-sdk = "1.18.12"
+solana-client = "1.18.12"
+solana-program-test = "1.18.12"
 
 spl-token = "4.0"
 spl-associated-token-account = "2.1"
