@@ -1,7 +1,5 @@
 [workspace]
-members = [
-    "programs/*"
-]
+members = ["programs/*"]
 
 [profile.test]
 overflow-checks = false
@@ -10,6 +8,7 @@ overflow-checks = false
 [profile.release]
 lto = "fat"
 codegen-units = 1
+overflow-checks = true
 
 [profile.release.build-override]
 opt-level = 3

@@ -3731,5 +3731,8 @@
       "name": "InvalidOutflowLimitPerEpochBps",
       "msg": "The outflow_limit_per_epoch_bps is invalid: over 100%."
     }
-  ]
+  ],
+  "metadata": {
+    "address": "CW5VzSk7WC4NPyuNt19VFev9FUHhyk5xxHTj2DUWBexu"
+  }
 }
