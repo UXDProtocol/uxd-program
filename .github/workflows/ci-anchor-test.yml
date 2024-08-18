@@ -27,7 +27,7 @@ env:
   #
   NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
   #
-  DEPLOYMENT_FUNDING_AMOUNT: 10
+  DEPLOYMENT_FUNDING_AMOUNT: 20
   TRANSACTION_FEE_OFFSET: 0.005
   # Name of the tests files in the program repo. We use them for sed and swap the `anchor test`
   TEST_DEV: 'test_development'
