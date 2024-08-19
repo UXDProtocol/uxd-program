@@ -356,7 +356,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         &authority,
         &authority_collateral,
         &authority_redeemable,
-        10_000 - 1, // 0.01 collateral (- just-in-case-precision-loss)
+        10_000 - 1, // 0.01 collateral (-precision-loss)
     )
     .await?;
 
