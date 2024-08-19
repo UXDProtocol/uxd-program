@@ -324,18 +324,6 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     )
     .await?;
 
-    program_uxd::instructions::process_mint_with_credix_lp_depository(
-        &mut program_context,
-        &payer,
-        &authority,
-        &collateral_mint,
-        &authority,
-        &authority_collateral,
-        &authority_redeemable,
-        10_000, // 0.01 collateral
-    )
-    .await?;
-
     program_uxd::instructions::process_redeem_from_identity_depository(
         &mut program_context,
         &payer,
