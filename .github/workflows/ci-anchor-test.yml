@@ -12,9 +12,9 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_TOOLCHAIN: 1.66
-  SOLANA_VERSION: 1.14.21
-  ANCHOR_VERSION: 0.27.0
+  RUST_TOOLCHAIN: 1.75.0
+  SOLANA_VERSION: 1.18.21
+  ANCHOR_VERSION: 0.26.0
   CLUSTER: 'devnet'
   DEVNET_RPC: https://api.devnet.solana.com
   # Default wallet
@@ -27,7 +27,7 @@ env:
   #
   NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
   #
-  DEPLOYMENT_FUNDING_AMOUNT: 10
+  DEPLOYMENT_FUNDING_AMOUNT: 20
   TRANSACTION_FEE_OFFSET: 0.005
   # Name of the tests files in the program repo. We use them for sed and swap the `anchor test`
   TEST_DEV: 'test_development'
@@ -54,7 +54,7 @@ jobs:
         with:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
-          profile: minimal
+          profile: default
       # Install solana
       - name: Cache Solana Tool Suite
         uses: actions/cache@v2

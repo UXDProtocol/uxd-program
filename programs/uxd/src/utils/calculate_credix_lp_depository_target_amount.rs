@@ -16,7 +16,7 @@ pub fn calculate_credix_lp_depository_target_amount(
     let controller = controller.load()?;
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
         controller.redeemable_circulating_supply,
-        &vec![
+        &[
             // credix is the first in the list
             DepositoryInfoForTargetRedeemableAmount {
                 weight_bps: controller.credix_lp_depository_weight_bps,

@@ -35,14 +35,9 @@ jobs:
         # - RUSTSEC-2020-0071 -> No fixes available, ignored by solana-labs: https://github.com/solana-labs/solana/blob/master/ci/do-audit.sh
         # - RUSTSEC-2022-0093 -> No fixes available, ignored by solana-labs: https://github.com/solana-labs/solana/blob/master/ci/do-audit.sh
         # - RUSTSEC-2023-0001 -> No fixes available, ignored by solana-labs: https://github.com/solana-labs/solana/blob/master/ci/do-audit.sh
-        # - RUSTSEC-2023-0052 -> Fixed by upgrading to v1.16 solana, ignored by solana-labs before v1.16: https://github.com/solana-labs/solana/issues/32933
-        # - RUSTSEC-2023-0063 -> Fixed by upgrading to v1.16 solana, ignored by solana-labs before v1.16: https://github.com/solana-labs/solana/pull/33355
-        # - RUSTSEC-2023-0065 -> Only a problem on solana-program-test, used for local testing only
         run: >
           cargo audit -c always
           --ignore RUSTSEC-2020-0071
           --ignore RUSTSEC-2022-0093
           --ignore RUSTSEC-2023-0001
-          --ignore RUSTSEC-2023-0052
-          --ignore RUSTSEC-2023-0063
-          --ignore RUSTSEC-2023-0065
+          --ignore RUSTSEC-2024-0344

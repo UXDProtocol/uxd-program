@@ -20,7 +20,7 @@ mod test_calculate_depositories_mint_collateral_amount {
         // Compute
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
             ui_to_native_amount(1_000_000),
-            &vec![
+            &[
                 // identity_depository has available space to mint
                 DepositoryInfoForMintCollateralAmount {
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
@@ -60,7 +60,7 @@ mod test_calculate_depositories_mint_collateral_amount {
         // Compute
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
             ui_to_native_amount(1_000_000),
-            &vec![
+            &[
                 // identity_depository is overflowing
                 DepositoryInfoForMintCollateralAmount {
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
@@ -100,7 +100,7 @@ mod test_calculate_depositories_mint_collateral_amount {
         // Compute
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
             ui_to_native_amount(1_000_000),
-            &vec![
+            &[
                 // identity_depository is overflowing
                 DepositoryInfoForMintCollateralAmount {
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
@@ -140,7 +140,7 @@ mod test_calculate_depositories_mint_collateral_amount {
         // Compute
         let result = calculate_depositories_mint_collateral_amount(
             ui_to_native_amount(1_000_000),
-            &vec![
+            &[
                 // identity_depository is overflowing
                 DepositoryInfoForMintCollateralAmount {
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
@@ -195,7 +195,7 @@ mod test_calculate_depositories_mint_collateral_amount {
             // Compute
             let result = calculate_depositories_mint_collateral_amount(
                 requested_mint_collateral_amount,
-                &vec![
+                &[
                     DepositoryInfoForMintCollateralAmount {
                         target_redeemable_amount: identity_depository_target_redeemable_amount,
                         redeemable_amount_under_management: identity_depository_redeemable_amount_under_management.into(),

@@ -12,7 +12,7 @@ mod test_calculate_depositories_sum_value {
             mercurial_vault_depository_value: u64,
             credix_lp_depository_value: u64,
         )| {
-            let depositories_value = vec![
+            let depositories_value = [
                 identity_depository_value,
                 mercurial_vault_depository_value,
                 credix_lp_depository_value,
