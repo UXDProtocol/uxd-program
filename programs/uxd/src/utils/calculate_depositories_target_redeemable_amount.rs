@@ -16,7 +16,7 @@ pub struct DepositoryInfoForTargetRedeemableAmount {
 
 pub fn calculate_depositories_target_redeemable_amount(
     redeemable_circulating_supply: u128,
-    depositories_info: &Vec<DepositoryInfoForTargetRedeemableAmount>,
+    depositories_info: &[DepositoryInfoForTargetRedeemableAmount],
 ) -> Result<Vec<u64>> {
     require!(
         depositories_info.len() == ROUTER_DEPOSITORIES_COUNT,

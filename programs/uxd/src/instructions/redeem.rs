@@ -231,7 +231,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     )?;
 
     // Build the vector of all known depository participating in the routing system
-    let depository_info = vec![
+    let depository_info = [
         // Identity depository details
         DepositoryInfoForRedeem {
             weight_bps: controller.identity_depository_weight_bps,

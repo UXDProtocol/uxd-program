@@ -7,7 +7,7 @@ use crate::ROUTER_DEPOSITORIES_COUNT;
 /**
  * Compute the sum of one value for each known depositories
  */
-pub fn calculate_depositories_sum_value(depositories_values: &Vec<u64>) -> Result<u64> {
+pub fn calculate_depositories_sum_value(depositories_values: &[u64]) -> Result<u64> {
     require!(
         depositories_values.len() == ROUTER_DEPOSITORIES_COUNT,
         UxdError::InvalidDepositoriesVector

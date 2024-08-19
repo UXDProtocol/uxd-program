@@ -15,7 +15,7 @@ pub struct DepositoryInfoForMintCollateralAmount {
 
 pub fn calculate_depositories_mint_collateral_amount(
     requested_mint_collateral_amount: u64,
-    depositories_info: &Vec<DepositoryInfoForMintCollateralAmount>,
+    depositories_info: &[DepositoryInfoForMintCollateralAmount],
 ) -> Result<Vec<u64>> {
     require!(
         depositories_info.len() == ROUTER_DEPOSITORIES_COUNT,

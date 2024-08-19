@@ -1,6 +1,6 @@
 [package]
 name = "uxd"
-version = "8.2.0"
+version = "8.3.0"
 authors = [
   "acammm <alexcamill@gmail.com>",
   "cnek <ctk2012ac@gmail.com>",
@@ -27,10 +27,11 @@ production = []
 development = []
 
 [dependencies]
-uxd-cpi = { version = "8.2.0", features = ["development"] }
+uxd-cpi = { version = "8.3.0", features = ["development"] }
 
 anchor-lang = "0.26.0"
 anchor-spl = "0.26.0"
+
 mercurial-vault = { git = "https://github.com/mercurial-finance/vault-sdk", features = [
   "cpi",
 ], rev = "3724175d8435f7acb7a33077a5a9f1eb58ab3399" }
@@ -39,18 +40,17 @@ credix_client = { version = "0.9.1", features = [
   "pre-mainnet",
   "cpi",
 ], default-features = false }
+
 num-traits = "0.2.15"
 num = "0.4.0"
 
 [dev-dependencies]
-proptest = "1.0.0"
+proptest = "1.2.0"
 async-trait = "0.1.73"
-solana-sdk = "=1.14.21"
-solana-client = "=1.14.21"
-solana-program-test = "=1.14.21"
-spl-token = "3.5.0"
-spl-associated-token-account = "1.1.2"
 
-toml_datetime = "=0.6.1" # This lib introduced a breaking change in 0.6.2
-winnow = "=0.4.1"        # This lib introduced a breaking change in 0.4.6
-time-macros = "=0.2.10"  # This lib introduced a breaking change in 0.2.11
+solana-sdk = "1.18.21"
+solana-client = "1.18.21"
+solana-program-test = "1.18.21"
+
+spl-token = "4.0"
+spl-associated-token-account = "2.1"

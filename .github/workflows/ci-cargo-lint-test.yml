@@ -8,8 +8,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_TOOLCHAIN: 1.66
-  SOLANA_VERSION: 1.14.21
+  RUST_TOOLCHAIN: 1.75.0
+  SOLANA_VERSION: 1.18.21
 
 defaults:
   run:
@@ -35,7 +35,7 @@ jobs:
         with:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
-          profile: minimal
+          profile: default
           components: rustfmt, clippy
 
       # Run cargo fmt
@@ -57,7 +57,7 @@ jobs:
         with:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
-          profile: minimal
+          profile: default
           components: rustfmt, clippy
 
       # Run cargo clippy
@@ -79,7 +79,7 @@ jobs:
         with:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
-          profile: minimal
+          profile: default
           components: rustfmt, clippy
 
       # Install Solana
@@ -103,4 +103,4 @@ jobs:
 
       # Run tests
       - name: Run tests
-        run: cargo test-bpf
+        run: cargo test
