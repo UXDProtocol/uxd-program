@@ -130,6 +130,12 @@ pub(crate) fn handler(
             / redeemable_amount_under_management,
     )?;
 
+    // Check the amount swapped is non-zero
+    require!(
+        exchanged_shares_amount > 0,
+        UxdError::InvalidCollateralAmount
+    );
+
     msg!(
         "[redeemable_amount_under_management:{}]",
         redeemable_amount_under_management

@@ -256,6 +256,21 @@ async fn test_credix_lp_depository_exchange_liquidity() -> Result<(), program_co
     )
     .await?;
 
+    // Exchanging 0 should fail
+    assert!(
+        program_uxd::instructions::process_exchange_liquidity_with_credix_lp_depository(
+            &mut program_context,
+            &payer,
+            &collateral_mint.pubkey(),
+            &user,
+            &user_collateral,
+            &receiver_credix_shares,
+            0,
+        )
+        .await
+        .is_err()
+    );
+
     // Proceed to the exchange in 2 separate partial transaction
     let credix_lp_depository_redeemable_amount_under_management =
         credix_lp_depository_collateral_amount_minted - 1; // precision-loss
