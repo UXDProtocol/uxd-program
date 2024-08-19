@@ -4,7 +4,6 @@ import { editControllerTest } from './cases/editControllerTest';
 import { initializeControllerTest } from './cases/initializeControllerTest';
 import { authority, bank, uxdProgramId } from './constants';
 import { credixLpDepositoryEditSuite } from './suite/credixLpDepositoryEditSuite';
-import { credixLpDepositoryMintSuite } from './suite/credixLpDepositoryMintSuite';
 import { credixLpDepositorySetupSuite } from './suite/credixLpDepositorySetupSuite';
 import {
   transferSol,
@@ -78,18 +77,6 @@ import {
     describe('credixLpDepositoryEditSuite', function () {
       credixLpDepositoryEditSuite({ authority, controller });
     });
-
-    /**
-     * Disabling minting test on devnet since credix program has minting disabled now
-     */
-    // describe('credixLpDepositoryMintSuite', function () {
-    //   credixLpDepositoryMintSuite({
-    //     authority,
-    //     user,
-    //     payer: bank,
-    //     controller,
-    //   });
-    // });
 
     this.afterAll('Transfer funds back to bank', async function () {
       await transferAllTokens(
