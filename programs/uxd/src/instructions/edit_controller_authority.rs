@@ -25,7 +25,7 @@ pub(crate) fn handler(ctx: Context<EditControllerAuthority>, authority: &Pubkey)
 }
 
 impl<'info> EditControllerAuthority<'info> {
-    pub(crate) fn validate(&self, authority: &Pubkey) -> Result<()> {
+    pub(crate) fn validate(&self, _authority: &Pubkey) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
         Ok(())
     }
