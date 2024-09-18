@@ -47,7 +47,7 @@ async fn test_controller_edit_authority() -> Result<(), program_context::Program
 
     // ---------------------------------------------------------------------
     // -- Phase 2
-    // -- Change the controller fields
+    // -- Change the controller authority back and forth
     // ---------------------------------------------------------------------
 
     let old_authority = authority;
@@ -80,7 +80,7 @@ async fn test_controller_edit_authority() -> Result<(), program_context::Program
             &mut program_context,
             &payer,
             &old_authority,
-            &old_authority.pubkey(),
+            &new_authority.pubkey(),
         )
         .await
         .is_err()
@@ -95,7 +95,7 @@ async fn test_controller_edit_authority() -> Result<(), program_context::Program
     )
     .await?;
 
-    // The old authority can not use the program anymore
+    // The old authority can not use the program anymore, but the new one can
     assert!(program_uxd::instructions::process_edit_controller(
         &mut program_context,
         &payer,
@@ -111,12 +111,50 @@ async fn test_controller_edit_authority() -> Result<(), program_context::Program
     )
     .await
     .is_err());
-
-    // The new authority can now use the program
     program_uxd::instructions::process_edit_controller(
         &mut program_context,
         &payer,
         &new_authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: None,
+            depositories_routing_weight_bps: None,
+            router_depositories: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
+        },
+    )
+    .await?;
+
+    // The new authority can send the authority again back to the old one
+    program_uxd::instructions::process_edit_controller_authority(
+        &mut program_context,
+        &payer,
+        &new_authority,
+        &old_authority.pubkey(),
+    )
+    .await?;
+
+    // The new authority can not use the program anymore, but the old one can
+    assert!(program_uxd::instructions::process_edit_controller(
+        &mut program_context,
+        &payer,
+        &new_authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: None,
+            depositories_routing_weight_bps: None,
+            router_depositories: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
+        },
+    )
+    .await
+    .is_err());
+    program_uxd::instructions::process_edit_controller(
+        &mut program_context,
+        &payer,
+        &old_authority,
         &EditControllerFields {
             redeemable_global_supply_cap: None,
             depositories_routing_weight_bps: None,
