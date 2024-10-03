@@ -86,6 +86,7 @@ pub struct ExchangeLiquidityWithCredixLpDepository<'info> {
     #[account(
         mut,
         token::mint = credix_shares_mint,
+        constraint = receiver_credix_shares.key() != credix_lp_depository_shares.key()
     )]
     pub receiver_credix_shares: Box<Account<'info, TokenAccount>>,
 
