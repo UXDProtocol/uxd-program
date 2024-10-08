@@ -1,4 +1,5 @@
 pub mod test_controller_edit;
+pub mod test_controller_edit_authority;
 pub mod test_credix_lp_depository_edit;
 pub mod test_credix_lp_depository_exchange_liquidity;
 pub mod test_credix_lp_depository_mint;

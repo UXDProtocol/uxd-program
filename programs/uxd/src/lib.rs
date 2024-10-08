@@ -88,6 +88,14 @@ pub mod uxd {
         instructions::edit_controller::handler(ctx, &fields)
     }
 
+    #[access_control(ctx.accounts.validate(&authority))]
+    pub fn edit_controller_authority(
+        ctx: Context<EditControllerAuthority>,
+        authority: Pubkey,
+    ) -> Result<()> {
+        instructions::edit_controller_authority::handler(ctx, &authority)
+    }
+
     #[access_control(ctx.accounts.validate())]
     pub fn edit_mercurial_vault_depository(
         ctx: Context<EditMercurialVaultDepository>,
