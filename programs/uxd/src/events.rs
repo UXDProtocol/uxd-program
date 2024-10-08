@@ -295,6 +295,23 @@ pub struct CollectProfitsOfCredixLpDepositoryEvent {
     pub collateral_amount: u64,
 }
 
+/// Event called in [instructions::exchange_liquidity_with_credix_lp_depository::handler].
+#[event]
+pub struct ExchangeLiquidityWithCredixLpDepositoryEvent {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    /// The collateral amount in native units. (input)
+    pub collateral_amount: u64,
+    /// The shares amount in native units. (output)
+    pub shares_amount: u64,
+}
+
 /// Event called in [instructions::rebalance_create_withdraw_request_from_credix_lp_depository::handler].
 #[event]
 pub struct RebalanceCreateWithdrawRequestFromCredixLpDepositoryEvent {

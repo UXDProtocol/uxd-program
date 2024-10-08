@@ -272,6 +272,18 @@ pub mod uxd {
         instructions::collect_profits_of_credix_lp_depository::handler(ctx)
     }
 
+    // Allow exchanging illiquid tokens locked with liquid tokens, pro-rata of LTV
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn exchange_liquidity_with_credix_lp_depository(
+        ctx: Context<ExchangeLiquidityWithCredixLpDepository>,
+        collateral_amount: u64,
+    ) -> Result<()> {
+        msg!("[exchange_liquidity_with_credix_lp_depository]");
+        instructions::exchange_liquidity_with_credix_lp_depository::handler(ctx, collateral_amount)
+    }
+
     // Create a rebalance request to collect profits and overflow from credix depository
     #[access_control(
         ctx.accounts.validate()

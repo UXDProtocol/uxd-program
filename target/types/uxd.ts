@@ -1,5 +1,5 @@
 export type Uxd = {
-  version: '8.2.0';
+  version: '8.3.0';
   name: 'uxd';
   instructions: [
     {
@@ -1743,6 +1743,95 @@ export type Uxd = {
       args: [];
     },
     {
+      name: 'exchangeLiquidityWithCredixLpDepository';
+      accounts: [
+        {
+          name: 'payer';
+          isMut: true;
+          isSigner: true;
+          docs: ['#1'];
+        },
+        {
+          name: 'user';
+          isMut: false;
+          isSigner: true;
+          docs: ['#2'];
+        },
+        {
+          name: 'controller';
+          isMut: true;
+          isSigner: false;
+          docs: ['#3'];
+        },
+        {
+          name: 'identityDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#4'];
+        },
+        {
+          name: 'identityDepositoryCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#5'];
+        },
+        {
+          name: 'credixLpDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#6'];
+        },
+        {
+          name: 'credixLpDepositoryShares';
+          isMut: true;
+          isSigner: false;
+          docs: ['#7'];
+        },
+        {
+          name: 'userCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#8'];
+        },
+        {
+          name: 'receiverCredixShares';
+          isMut: true;
+          isSigner: false;
+          docs: ['#9'];
+        },
+        {
+          name: 'collateralMint';
+          isMut: false;
+          isSigner: false;
+          docs: ['#10'];
+        },
+        {
+          name: 'credixSharesMint';
+          isMut: false;
+          isSigner: false;
+          docs: ['#11'];
+        },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#12'];
+        },
+        {
+          name: 'tokenProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#13'];
+        }
+      ];
+      args: [
+        {
+          name: 'collateralAmount';
+          type: 'u64';
+        }
+      ];
+    },
+    {
       name: 'rebalanceCreateWithdrawRequestFromCredixLpDepository';
       accounts: [
         {
@@ -2098,28 +2187,8 @@ export type Uxd = {
           {
             name: 'unused4';
             type: {
-              array: ['u8', 8];
+              array: ['u8', 266];
             };
-          },
-          {
-            name: 'registeredMercurialVaultDepositories';
-            type: {
-              array: ['publicKey', 4];
-            };
-          },
-          {
-            name: 'registeredMercurialVaultDepositoriesCount';
-            type: 'u8';
-          },
-          {
-            name: 'registeredCredixLpDepositories';
-            type: {
-              array: ['publicKey', 4];
-            };
-          },
-          {
-            name: 'registeredCredixLpDepositoriesCount';
-            type: 'u8';
           },
           {
             name: 'profitsTotalCollected';
@@ -3199,6 +3268,41 @@ export type Uxd = {
       ];
     },
     {
+      name: 'ExchangeLiquidityWithCredixLpDepositoryEvent';
+      fields: [
+        {
+          name: 'controllerVersion';
+          type: 'u8';
+          index: true;
+        },
+        {
+          name: 'depositoryVersion';
+          type: 'u8';
+          index: true;
+        },
+        {
+          name: 'controller';
+          type: 'publicKey';
+          index: true;
+        },
+        {
+          name: 'depository';
+          type: 'publicKey';
+          index: true;
+        },
+        {
+          name: 'collateralAmount';
+          type: 'u64';
+          index: false;
+        },
+        {
+          name: 'sharesAmount';
+          type: 'u64';
+          index: false;
+        }
+      ];
+    },
+    {
       name: 'RebalanceCreateWithdrawRequestFromCredixLpDepositoryEvent';
       fields: [
         {
@@ -3498,7 +3602,7 @@ export type Uxd = {
     {
       code: 6033;
       name: 'InvalidDepository';
-      msg: 'The Depository provided is not registered with the Controller.';
+      msg: 'The Depository provided is not matching the one stored in the Controller.';
     },
     {
       code: 6034;
@@ -3629,7 +3733,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  version: '8.2.0',
+  version: '8.3.0',
   name: 'uxd',
   instructions: [
     {
@@ -5373,6 +5477,95 @@ export const IDL: Uxd = {
       args: [],
     },
     {
+      name: 'exchangeLiquidityWithCredixLpDepository',
+      accounts: [
+        {
+          name: 'payer',
+          isMut: true,
+          isSigner: true,
+          docs: ['#1'],
+        },
+        {
+          name: 'user',
+          isMut: false,
+          isSigner: true,
+          docs: ['#2'],
+        },
+        {
+          name: 'controller',
+          isMut: true,
+          isSigner: false,
+          docs: ['#3'],
+        },
+        {
+          name: 'identityDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#4'],
+        },
+        {
+          name: 'identityDepositoryCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#5'],
+        },
+        {
+          name: 'credixLpDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#6'],
+        },
+        {
+          name: 'credixLpDepositoryShares',
+          isMut: true,
+          isSigner: false,
+          docs: ['#7'],
+        },
+        {
+          name: 'userCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#8'],
+        },
+        {
+          name: 'receiverCredixShares',
+          isMut: true,
+          isSigner: false,
+          docs: ['#9'],
+        },
+        {
+          name: 'collateralMint',
+          isMut: false,
+          isSigner: false,
+          docs: ['#10'],
+        },
+        {
+          name: 'credixSharesMint',
+          isMut: false,
+          isSigner: false,
+          docs: ['#11'],
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#12'],
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#13'],
+        },
+      ],
+      args: [
+        {
+          name: 'collateralAmount',
+          type: 'u64',
+        },
+      ],
+    },
+    {
       name: 'rebalanceCreateWithdrawRequestFromCredixLpDepository',
       accounts: [
         {
@@ -5728,28 +5921,8 @@ export const IDL: Uxd = {
           {
             name: 'unused4',
             type: {
-              array: ['u8', 8],
+              array: ['u8', 266],
             },
-          },
-          {
-            name: 'registeredMercurialVaultDepositories',
-            type: {
-              array: ['publicKey', 4],
-            },
-          },
-          {
-            name: 'registeredMercurialVaultDepositoriesCount',
-            type: 'u8',
-          },
-          {
-            name: 'registeredCredixLpDepositories',
-            type: {
-              array: ['publicKey', 4],
-            },
-          },
-          {
-            name: 'registeredCredixLpDepositoriesCount',
-            type: 'u8',
           },
           {
             name: 'profitsTotalCollected',
@@ -6829,6 +7002,41 @@ export const IDL: Uxd = {
       ],
     },
     {
+      name: 'ExchangeLiquidityWithCredixLpDepositoryEvent',
+      fields: [
+        {
+          name: 'controllerVersion',
+          type: 'u8',
+          index: true,
+        },
+        {
+          name: 'depositoryVersion',
+          type: 'u8',
+          index: true,
+        },
+        {
+          name: 'controller',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'depository',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'collateralAmount',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'sharesAmount',
+          type: 'u64',
+          index: false,
+        },
+      ],
+    },
+    {
       name: 'RebalanceCreateWithdrawRequestFromCredixLpDepositoryEvent',
       fields: [
         {
@@ -7128,7 +7336,7 @@ export const IDL: Uxd = {
     {
       code: 6033,
       name: 'InvalidDepository',
-      msg: 'The Depository provided is not registered with the Controller.',
+      msg: 'The Depository provided is not matching the one stored in the Controller.',
     },
     {
       code: 6034,

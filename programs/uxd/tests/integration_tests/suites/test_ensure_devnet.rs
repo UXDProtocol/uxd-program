@@ -297,7 +297,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     .await?;
 
     // ---------------------------------------------------------------------
-    // -- Check that all mints work
+    // -- Check that all mints/redeen work
     // ---------------------------------------------------------------------
 
     program_uxd::instructions::process_mint_with_identity_depository(
